@@ -26,7 +26,8 @@ SECRET_KEY = 'django-insecure-oz=b6wzr@y!d$nn8_scbj86y!k$a%*#5^5s=6xmdmfo(xzk@2z
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost','*']
+ALLOWED_HOSTS = ['localhost', '*']
+AUTH_USER_MODEL = 'user.User'
 
 
 # Application definition
@@ -80,7 +81,7 @@ DATABASES = {
         'NAME': os.getenv('DATABASE_NAME', 'funfoo_notes'),
         'USER': os.getenv('DATABASE_USER', 'postgres'),
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'Aniket@92774006'),
-        'HOST': os.getenv('DATABASE_HOST','db'),
+        'HOST': os.getenv('DATABASE_HOST', 'db'),
         'PORT': '5432',
     }
 }
