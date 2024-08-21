@@ -11,8 +11,16 @@ class RegisterUserView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             user_data = RegisterSerializer(user).data
-            return Response({'message': 'User registered successfully', 'status': 'success', 'data': user_data}, status=status.HTTP_201_CREATED)
-        return Response({'message': 'Invalid data', 'status': 'error', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'message': 'User registered successfully',
+                'status': 'success',
+                'data': user_data
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            'message': 'Invalid data',
+            'status': 'error',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginUserView(APIView):
@@ -20,6 +28,10 @@ class LoginUserView(APIView):
         serializer = LoginSerializer(
             data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save()
-            return Response({'message': 'User login successful', 'status': 'success'}, status=status.HTTP_200_OK)
-        return Response({'message': 'Invalid data', 'status': 'error', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            response_data = serializer.save()
+            return Response(response_data, status=status.HTTP_200_OK)
+        return Response({
+            'message': 'Invalid data',
+            'status': 'error',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
