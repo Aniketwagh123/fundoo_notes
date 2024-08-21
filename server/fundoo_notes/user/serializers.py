@@ -56,7 +56,7 @@ class LoginSerializer(serializers.Serializer):
 
         user = authenticate(email=email, password=password)
         if user is None:
-            raise serializers.ValidationError('Invalid email or password')
+            raise serializers.ValidationError({'message': 'Invalid email or password', 'status': 'error'})
         
        
         # Update last login time
