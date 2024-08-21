@@ -5,6 +5,8 @@ from django.core.validators import MinLengthValidator
 from django.contrib.auth import authenticate
 from django.utils.timezone import now
 
+from .utils import get_tokens_for_user
+
 
 User = get_user_model()
 
@@ -44,11 +46,17 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         return user
 
+# from rest_framework import serializers
+# from django.contrib.auth import get_user_model
+# from django.contrib.auth import authenticate
+# from django.utils.timezone import now
+# from .utils import get_tokens_for_user
+
+# User = get_user_model()
+
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    password = serializers.CharField(write_only=True, required=True, style={
-                                     'input_type': 'password'})
-
+    password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
 
     def create(self, validated_data):
         email = validated_data.get('email')
@@ -58,8 +66,21 @@ class LoginSerializer(serializers.Serializer):
         if user is None:
             raise serializers.ValidationError({'message': 'Invalid email or password', 'status': 'error'})
         
-       
         # Update last login time
         user.last_login = now()
         user.save()
-        return user
+
+        # Generate tokens for the user
+        tokens = get_tokens_for_user(user)
+
+        # Return user data along with tokens
+        return {
+            'message': 'User login successful',
+            'status': 'success',
+            'data': {
+                'id': user.id, # type: ignore
+                'username': user.username,
+                'email': user.email,
+            },
+            'tokens': tokens
+        }
