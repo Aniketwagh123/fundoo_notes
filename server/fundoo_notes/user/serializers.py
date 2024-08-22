@@ -5,25 +5,25 @@ from django.core.validators import MinLengthValidator
 from django.contrib.auth import authenticate
 from django.utils.timezone import now
 
-from .utils import get_tokens_for_user
-
-
-User = get_user_model()
-
-
-# class UserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ['id', 'username', 'email',
-#                   'first_name', 'last_name', 'is_verified']
+from .utils.utils import get_tokens_for_user
+from .models import User
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+    """
+    desc: Serializer for user registration. Handles password validation and creates a new user.
+    params:
+        - password (CharField): User's password, validated and write-only.
+        - username (CharField): User's username, required and must be at least 3 characters long.
+    return: 
+        - User (User): The created user instance with the validated data.
+    """
     password = serializers.CharField(
         write_only=True,
         required=True,
         style={'input_type': 'password'},
-        validators=[validate_password])
+        validators=[validate_password]
+    )
 
     username = serializers.CharField(
         required=True,
@@ -43,20 +43,21 @@ class RegisterSerializer(serializers.ModelSerializer):
             first_name=validated_data.get('first_name', ''),
             last_name=validated_data.get('last_name', '')
         )
-
         return user
 
-# from rest_framework import serializers
-# from django.contrib.auth import get_user_model
-# from django.contrib.auth import authenticate
-# from django.utils.timezone import now
-# from .utils import get_tokens_for_user
-
-# User = get_user_model()
 
 class LoginSerializer(serializers.Serializer):
+    """
+    desc: Serializer for user login. Authenticates the user and returns tokens upon successful login.
+    params:
+        - email (EmailField): User's email address, used for authentication.
+        - password (CharField): User's password, validated and write-only.
+    return: 
+        - dict: A dictionary containing user data and JWT tokens if authentication is successful.
+    """
     email = serializers.EmailField()
-    password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
+    password = serializers.CharField(write_only=True, required=True, style={
+                                     'input_type': 'password'})
 
     def create(self, validated_data):
         email = validated_data.get('email')
@@ -64,8 +65,11 @@ class LoginSerializer(serializers.Serializer):
 
         user = authenticate(email=email, password=password)
         if user is None:
-            raise serializers.ValidationError({'message': 'Invalid email or password', 'status': 'error'})
-        
+            raise serializers.ValidationError({
+                'message': 'Invalid email or password',
+                'status': 'error'
+            })
+
         # Update last login time
         user.last_login = now()
         user.save()
@@ -75,10 +79,8 @@ class LoginSerializer(serializers.Serializer):
 
         # Return user data along with tokens
         return {
-            'message': 'User login successful',
-            'status': 'success',
             'data': {
-                'id': user.id, # type: ignore
+                'id': user.id,  # type: ignore
                 'username': user.username,
                 'email': user.email,
             },
