@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Verify your email address</title>
+  <style>
+    body, .email-wrapper, .email-content {
+      width: 100%; margin: 0; padding: 0; background-color: #F5F7F9; color: #839197; font-family: Arial, sans-serif; line-height: 1.4;
+    }
+    .email-masthead { padding: 25px 0; text-align: center; }
+    .email-body { border-top: 1px solid #E7EAEC; border-bottom: 1px solid #E7EAEC; background-color: #FFFFFF; }
+    .email-body_inner, .email-footer { width: 570px; margin: 0 auto; }
+    .content-cell { padding: 35px; }
+    h1, h2, h3 { color: #292E31; font-weight: bold; margin-top: 0; }
+    p { margin-top: 0; font-size: 16px; line-height: 1.5em; }
+    .button { display: inline-block; width: 200px; background-color: #414EF9; border-radius: 3px; color: #fff; font-size: 15px; line-height: 45px; text-align: center; text-decoration: none; }
+    .body-sub { margin-top: 25px; padding-top: 25px; border-top: 1px solid #E7EAEC; }
+    p.sub { font-size: 12px; text-align: center; }
+    @media only screen and (max-width: 600px) { .email-body_inner, .email-footer { width: 100% !important; } }
+    @media only screen and (max-width: 500px) { .button { width: 100% !important; } }
+  </style>
+</head>
+<body>
+  <table class="email-wrapper">
+    <tr>
+      <td align="center">
+        <table class="email-content">
+          <tr>
+            <td class="email-masthead">
+              <a class="email-masthead_name">FundooNotes</a>
+            </td>
+          </tr>
+          <tr>
+            <td class="email-body">
+              <table class="email-body_inner" align="center">
+                <tr>
+                  <td class="content-cell">
+                    <h1>Verify your email address</h1>
+                    <p>Thanks for signing up for FundooNotes! We're excited to have you as an early user.</p>
+                    <table class="body-action" align="center" width="100%">
+                      <tr>
+                        <td align="center">
+                          <a href="{{ action_url }}" class="button">Verify Email</a>
+                        </td>
+                      </tr>
+                    </table>
+                    <p>If you did not create an account, please ignore this email.</p>
+                    <p>Thanks,<br>The FundooNotes Team</p>
+                    <table class="body-sub">
+                      <tr>
+                        <td>
+                          <p class="sub">If you’re having trouble clicking the button, copy and paste the URL below into your web browser.</p>
+                          <p class="sub"><a href="{{ action_url }}">{{ action_url }}</a></p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <table class="email-footer" align="center">
+                <tr>
+                  <td class="content-cell">
+                    <p class="sub">FundooNotes, Inc.
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
