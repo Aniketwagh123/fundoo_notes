@@ -69,6 +69,8 @@ class LoginSerializer(serializers.Serializer):
                 'message': 'Invalid email or password',
                 'status': 'error'
             })
+        if not user.is_verified: # type: ignore
+            raise serializers.ValidationError("user is not verified")
 
         # Update last login time
         user.last_login = now()
