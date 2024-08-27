@@ -244,3 +244,19 @@ LOGURU_SETTINGS = {
 # Apply the Loguru settings
 for handler in LOGURU_SETTINGS["handlers"]:
     logger.add(**handler)
+
+
+#  Redis settings
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://redis:6379/0',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
+# Redis as a session backend (optional)
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
