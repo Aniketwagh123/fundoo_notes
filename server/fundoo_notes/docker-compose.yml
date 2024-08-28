@@ -49,6 +49,34 @@ services:
     networks:
       - mynetwork
 
+  celery:
+    container_name: celery
+    build: .
+    command: celery -A fundoo_notes worker -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - web
+    networks:
+      - mynetwork
+
+  flower:
+    container_name: flower
+    image: mher/flower
+    command: ["celery", "flower"]
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - FLOWER_PORT=8888
+    ports:
+      - "8888:8888"
+    networks:
+      - mynetwork
+    depends_on:
+      - redis
+      - web
+      - celery
+
 volumes:
   postgres_data:
   pgadmin_data:

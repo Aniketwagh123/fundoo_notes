@@ -7,6 +7,8 @@ from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from django.db.transaction import atomic
 from datetime import datetime, timedelta, timezone
 
+from .task import send_verification_email_task
+
 from .utils.utils import send_verification_email
 from .serializers import RegisterSerializer, LoginSerializer
 from .models import User
@@ -45,7 +47,9 @@ class RegisterUserView(APIView):
                     )
 
                     # Send verification email
-                    send_verification_email(user, verification_link)
+                    # send_verification_email(user, verification_link)
+                    # Enqueue the email sending task
+                    send_verification_email_task.delay(user.email, verification_link) # type: ignore
 
                     return Response({
                         'message': 'User registered successfully',

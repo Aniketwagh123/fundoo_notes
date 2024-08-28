@@ -170,11 +170,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # EMAIL_HOST_PASSWORD = #password associated with above email-id
 
 # test
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'sandbox.smtp.mailtrap.io'),
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '4e4c314d1ced7a'),
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '5cfc527be41a93'),
-EMAIL_PORT = os.getenv('EMAIL_PORT', '2525'),
-
+EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+EMAIL_HOST_USER = '4e4c314d1ced7a'
+EMAIL_HOST_PASSWORD = '5cfc527be41a93'
+EMAIL_PORT = '2525'
 
 # Loguru settings for handlers
 LOG_DIR = BASE_DIR / 'logs'
@@ -260,3 +259,14 @@ CACHES = {
 # Redis as a session backend (optional)
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
+
+
+# Celery Settings
+CELERY_BROKER_URL = 'redis://redis:6379/0'  # or your broker URL
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'  # or your result backend
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'  # or your timezone
+# CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
