@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'user',
     'notes',
     'label',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -143,7 +144,7 @@ SIMPLE_JWT = {
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = os.getenv('TIME_ZONE', 'UTC')
+TIME_ZONE = os.getenv('TIME_ZONE', 'Asia/Kolkata')
 
 USE_I18N = False
 
@@ -267,6 +268,9 @@ CELERY_RESULT_BACKEND = 'redis://redis:6379/0'  # or your result backend
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'UTC'  # or your timezone
-# CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_TIMEZONE = 'Asia/Kolkata'  # or your timezone
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
 

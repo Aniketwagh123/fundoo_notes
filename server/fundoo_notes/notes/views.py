@@ -8,6 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError
 from loguru import logger
 
+from .utils import schedule_reminder
 from utils.redisUtils import RedisUtils
 from .models import Note
 from .serializers import NoteSerializer
@@ -39,7 +40,7 @@ class NoteViewSet(viewsets.ViewSet):
 
             if notes_data:
                 logger.info("Returning notes from cache.")
-                notes_data = json.loads(notes_data) # type: ignore
+                notes_data = json.loads(notes_data)  # type: ignore
             else:
                 queryset = Note.objects.filter(user=request.user)
                 serializer = NoteSerializer(queryset, many=True)
@@ -86,11 +87,14 @@ class NoteViewSet(viewsets.ViewSet):
             serializer = NoteSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             note = serializer.save(user=request.user)
+            # Schedule the task if reminder is set
+            if note.reminder:  # type: ignore
+                schedule_reminder(note)  # type: ignore
 
             cache_key = f"user_{request.user.id}"
             notes_data = self.redis.get(cache_key)
             if notes_data:
-                notes_data = json.loads(notes_data) # type: ignore
+                notes_data = json.loads(notes_data)  # type: ignore
             else:
                 notes_data = []
 
@@ -137,7 +141,7 @@ class NoteViewSet(viewsets.ViewSet):
             notes_data = self.redis.get(cache_key)
 
             if notes_data:
-                notes_data = json.loads(notes_data) # type: ignore
+                notes_data = json.loads(notes_data)  # type: ignore
                 note_data = next(
                     (note for note in notes_data if note['id'] == int(pk)), None)  # type: ignore
                 if note_data:
@@ -206,10 +210,13 @@ class NoteViewSet(viewsets.ViewSet):
             serializer.is_valid(raise_exception=True)
             note = serializer.save()
 
+            if note.reminder: # type: ignore
+                schedule_reminder(note) # type: ignore
+
             cache_key = f"user_{request.user.id}"
             notes_data = self.redis.get(cache_key)
             if notes_data:
-                notes_data = json.loads(notes_data) # type: ignore
+                notes_data = json.loads(notes_data)  # type: ignore
                 for idx, existing_note in enumerate(notes_data):
                     if existing_note['id'] == int(pk):  # type: ignore
                         notes_data[idx] = serializer.data
@@ -268,7 +275,7 @@ class NoteViewSet(viewsets.ViewSet):
             cache_key = f"user_{request.user.id}"
             notes_data = self.redis.get(cache_key)
             if notes_data:
-                notes_data = json.loads(notes_data) # type: ignore
+                notes_data = json.loads(notes_data)  # type: ignore
                 notes_data = [
                     note for note in notes_data if note['id'] != int(pk)]  # type: ignore
 
@@ -325,7 +332,7 @@ class NoteViewSet(viewsets.ViewSet):
             cache_key = f"user_{request.user.id}"
             notes_data = self.redis.get(cache_key)
             if notes_data:
-                notes_data = json.loads(notes_data) # type: ignore
+                notes_data = json.loads(notes_data)  # type: ignore
                 for idx, existing_note in enumerate(notes_data):
                     if existing_note['id'] == int(note_id):
                         existing_note['is_archived'] = True
@@ -384,7 +391,7 @@ class NoteViewSet(viewsets.ViewSet):
             cache_key = f"user_{request.user.id}"
             notes_data = self.redis.get(cache_key)
             if notes_data:
-                notes_data = json.loads(notes_data) # type: ignore
+                notes_data = json.loads(notes_data)  # type: ignore
                 for idx, existing_note in enumerate(notes_data):
                     if existing_note['id'] == int(note_id):
                         existing_note['is_trashed'] = True

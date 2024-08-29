@@ -61,6 +61,19 @@ services:
     networks:
       - mynetwork
 
+  celery_beat:
+    build: .
+    container_name: celery_beat
+    command: celery -A fundoo_notes beat --loglevel=info
+    restart: always
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    networks:
+      - mynetwork
+
   flower:
     container_name: flower
     image: mher/flower
