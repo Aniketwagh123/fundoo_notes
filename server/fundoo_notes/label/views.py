@@ -8,6 +8,7 @@ from loguru import logger
 
 from .models import Label
 from .serializers import LabelSerializer
+from drf_yasg.utils import swagger_auto_schema
 
 
 class LabelViewSet(mixins.CreateModelMixin,
@@ -72,6 +73,8 @@ class LabelViewSet(mixins.CreateModelMixin,
                 'errors': str(exc)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @swagger_auto_schema(operation_description="Creation of label", request_body=LabelSerializer, responses={201: LabelSerializer, 400: "Bad Request: Invalid input data.",
+                                                                                                             500: "Internal Server Error: An error occurred during creating label."})
     def create(self, request, *args, **kwargs):
         """
         desc: Creates a new label for the authenticated user.
@@ -81,8 +84,9 @@ class LabelViewSet(mixins.CreateModelMixin,
         try:
             data = request.data.copy()  # Create a copy of the request data
             data['user'] = request.user.id
-            logger.info(f"Request Data: {data}")  # Log the data being sent to the serializer
-            
+            # Log the data being sent to the serializer
+            logger.info(f"Request Data: {data}")
+
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
@@ -105,6 +109,8 @@ class LabelViewSet(mixins.CreateModelMixin,
         except Exception as exc:
             return self.handle_exception(exc)
 
+    @swagger_auto_schema(operation_description="Updation of label", request_body=LabelSerializer, responses={201: LabelSerializer, 400: "Bad Request: Invalid input data.",
+                                                                                                             500: "Internal Server Error: An error occurred during updating label."})
     def update(self, request, *args, **kwargs):
         """
         desc: Updates a specific label for the authenticated user.
@@ -116,7 +122,7 @@ class LabelViewSet(mixins.CreateModelMixin,
         try:
             # Retrieve the label instance to be updated
             label_instance = self.get_object()
-            
+
             # Check if the label belongs to the authenticated user
             if label_instance.user != request.user:
                 return Response({
@@ -124,24 +130,26 @@ class LabelViewSet(mixins.CreateModelMixin,
                     'status': 'error',
                     'errors': 'Permission denied'
                 }, status=status.HTTP_403_FORBIDDEN)
-            
+
             # Create a new dictionary with the user field included
             data = request.data.copy()  # Create a copy of the request data
             data['user'] = request.user.id
-            
+
             # Ensure that the serializer updates the instance
-            serializer = self.get_serializer(label_instance, data=data, partial=True)
+            serializer = self.get_serializer(
+                label_instance, data=data, partial=True)
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
-            
+
             # Return the updated label data
             return Response(serializer.data)
-    
+
         except Exception as exc:
             logger.error(f"Exception: {exc}")
             return self.handle_exception(exc)
 
-
+    @swagger_auto_schema(operation_description="Deletion of label", request_body=LabelSerializer, responses={201: LabelSerializer, 400: "Bad Request: Invalid input data.",
+                                                                                                             500: "Internal Server Error: An error occurred during deleting label."})
     def destroy(self, request, *args, **kwargs):
         """
         desc: Deletes a specific label for the authenticated user.

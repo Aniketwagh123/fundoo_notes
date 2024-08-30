@@ -12,6 +12,8 @@ from .utils import schedule_reminder
 from utils.redisUtils import RedisUtils
 from .models import Note
 from .serializers import NoteSerializer
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 
 class NoteViewSet(viewsets.ViewSet):
@@ -20,6 +22,8 @@ class NoteViewSet(viewsets.ViewSet):
 
     desc: Handles CRUD operations and custom actions for user notes.
     """
+
+    """ Swagger_atuo_schema()"""
 
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -77,6 +81,9 @@ class NoteViewSet(viewsets.ViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    @swagger_auto_schema(operation_description="Creation of note", request_body=NoteSerializer, 
+                         responses={201: NoteSerializer, 400: "Bad Request: Invalid input data.",
+                                                                                                                                          500: "Internal Server Error: An error occurred during Creating note."})
     def create(self, request):
         """
         desc: Creates a new note for the authenticated user.
@@ -196,6 +203,8 @@ class NoteViewSet(viewsets.ViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    @swagger_auto_schema(operation_description="Updation of note", request_body=NoteSerializer, responses={201: NoteSerializer, 400: "Bad Request: Invalid input data.",
+                                                                                                           500: "Internal Server Error: An error occurred during updating note."})
     def update(self, request, pk=None):
         """
         desc: Updates a specific note for the authenticated user.
@@ -210,8 +219,8 @@ class NoteViewSet(viewsets.ViewSet):
             serializer.is_valid(raise_exception=True)
             note = serializer.save()
 
-            if note.reminder: # type: ignore
-                schedule_reminder(note) # type: ignore
+            if note.reminder:  # type: ignore
+                schedule_reminder(note)  # type: ignore
 
             cache_key = f"user_{request.user.id}"
             notes_data = self.redis.get(cache_key)
@@ -260,6 +269,8 @@ class NoteViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+    @swagger_auto_schema(operation_description="Deletion of note", request_body=NoteSerializer, responses={201: NoteSerializer, 400: "Bad Request: Invalid input data.",
+                                                                                                           500: "Internal Server Error: An error occurred during deleting note."})
     def destroy(self, request, pk=None):
         """
         desc: Deletes a specific note for the authenticated user.
@@ -316,6 +327,8 @@ class NoteViewSet(viewsets.ViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    @swagger_auto_schema(operation_description="Archive note", request_body=NoteSerializer, responses={201: NoteSerializer, 400: "Bad Request: Invalid input data.",
+                                                                                                       500: "Internal Server Error: An error occurred during archive note."})
     @action(detail=False, methods=['post'])
     def archive(self, request):
         """
@@ -375,6 +388,8 @@ class NoteViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+    @swagger_auto_schema(operation_description="Trashed note", request_body=NoteSerializer, responses={201: NoteSerializer, 400: "Bad Request: Invalid input data.",
+                                                                                                       500: "Internal Server Error: An error occurred during trashed not."})
     @action(detail=False, methods=['post'])
     def trash(self, request):
         """

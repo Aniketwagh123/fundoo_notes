@@ -13,3 +13,4 @@ django-redis==5.4.0
 celery==5.4.0
 flower==2.0.1
 django-celery-beat==2.7.0
+drf-yasg==1.21.7

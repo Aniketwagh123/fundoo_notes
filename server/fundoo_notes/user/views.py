@@ -13,6 +13,8 @@ from .utils.utils import send_verification_email
 from .serializers import RegisterSerializer, LoginSerializer
 from .models import User
 from .utils.JWTUtil import JWTUtil
+from rest_framework.permissions import AllowAny
+from drf_yasg.utils import swagger_auto_schema
 
 
 class RegisterUserView(APIView):
@@ -25,7 +27,10 @@ class RegisterUserView(APIView):
     return: 
         - Response: HTTP response with a success or error message and the user data.
     """
+    authentication_classes = []  # No authentication required
+    permission_classes = [AllowAny]
 
+    @swagger_auto_schema(operation_description="user login", request_body=RegisterSerializer, responses={200: RegisterSerializer})
     def post(self, request, *args, **kwargs):
         serializer = RegisterSerializer(data=request.data)
         try:
@@ -49,7 +54,8 @@ class RegisterUserView(APIView):
                     # Send verification email
                     # send_verification_email(user, verification_link)
                     # Enqueue the email sending task
-                    send_verification_email_task.delay(user.email, verification_link) # type: ignore
+                    send_verification_email_task.delay(
+                        user.email, verification_link)  # type: ignore
 
                     return Response({
                         'message': 'User registered successfully',
@@ -81,7 +87,8 @@ class LoginUserView(APIView):
     return: 
         - Response: HTTP response with a success or error message and JWT token if successful.
     """
-
+    @swagger_auto_schema(operation_description="user register", request_body=LoginSerializer, responses={201: LoginSerializer, 400: "Bad Request: Invalid input data.",
+                                                                                                         500: "Internal Server Error: An error occurred during Login."})
     def post(self, request, *args, **kwargs):
         serializer = LoginSerializer(
             data=request.data, context={'request': request})
