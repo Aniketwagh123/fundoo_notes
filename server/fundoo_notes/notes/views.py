@@ -8,14 +8,21 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError
 from loguru import logger
 
+from user.models import User
+
 from .utils import schedule_reminder
 from utils.redisUtils import RedisUtils
-from .models import Note
+from .models import Collaborator, Note
 from .serializers import NoteSerializer
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .models import Note
 from drf_yasg import openapi
 
-
+# TODO: retrive all nots of collaboraters also use Q object
+# TODO: menytomeny for label and note
 class NoteViewSet(viewsets.ViewSet):
     """
     A ViewSet for viewing, editing, archiving, and trashing user notes.
@@ -81,9 +88,9 @@ class NoteViewSet(viewsets.ViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    @swagger_auto_schema(operation_description="Creation of note", request_body=NoteSerializer, 
+    @swagger_auto_schema(operation_description="Creation of note", request_body=NoteSerializer,
                          responses={201: NoteSerializer, 400: "Bad Request: Invalid input data.",
-                                                                                                                                          500: "Internal Server Error: An error occurred during Creating note."})
+                                    500: "Internal Server Error: An error occurred during Creating note."})
     def create(self, request):
         """
         desc: Creates a new note for the authenticated user.
@@ -447,4 +454,147 @@ class NoteViewSet(viewsets.ViewSet):
                     'errors': str(e)
                 },
                 status=status.HTTP_400_BAD_REQUEST
+            )
+
+    @swagger_auto_schema(
+        operation_description="Add collaborators to a note",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'note_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'user_ids': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_INTEGER))
+            }
+        ),
+        responses={
+            200: "Collaborators added successfully",
+            400: "Bad Request: Invalid input data.",
+            404: "Not Found: Note not found.",
+            500: "Internal Server Error: An error occurred during adding collaborators."
+        }
+    )
+    @action(detail=False, methods=['post'])
+    def add_collaborators(self, request):
+        """
+        desc: Adds collaborators to a specific note for the authenticated user.
+        params: request (Request): The HTTP request object with note ID and list of user IDs.
+        return: Response: Success message or error message.
+        """
+        try:
+            note_id = request.data.get('note_id')
+            user_ids = request.data.get('user_ids', [])
+
+            if not isinstance(user_ids, list):
+                return Response(
+                    {'message': 'Invalid data format for user_ids', 'status': 'error'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Fetch the note
+            note = Note.objects.get(pk=note_id, user=request.user)
+
+            # Exclude the owner from being a collaborator
+            if request.user.id in user_ids:
+                return Response(
+                    {'message': 'Owner cannot be added as a collaborator', 'status': 'error'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Fetch valid users from the user_ids
+            users = User.objects.filter(pk__in=user_ids)
+            valid_user_ids = {user.id for user in users} # type: ignore
+
+            # Create a list of Collaborator objects to be created
+            collaborators = [
+                Collaborator(note=note, user=user, access_type=Collaborator.READ_WRITE)
+                for user in users
+            ]
+
+            # Perform bulk creation
+            Collaborator.objects.bulk_create(collaborators, ignore_conflicts=True)
+
+            # Check if there were any invalid user_ids provided
+            invalid_user_ids = set(user_ids) - valid_user_ids
+            if invalid_user_ids:
+                return Response(
+                    {'message': f"Collaborators added successfully, but the following user_ids were not found: {list(invalid_user_ids)}", 'status': 'partial_success'},
+                    status=status.HTTP_200_OK
+                )
+
+            return Response(
+                {'message': 'Collaborators added successfully', 'status': 'success'},
+                status=status.HTTP_200_OK
+            )
+
+        except Note.DoesNotExist:
+            return Response(
+                {'message': 'Note not found', 'status': 'error', 'errors': 'The requested note does not exist.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            logger.error(f"Unexpected error while adding collaborators: {e}")
+            return Response(
+                {'message': 'An unexpected error occurred', 'status': 'error', 'errors': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @swagger_auto_schema(
+        operation_description="Remove collaborators from a note",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'note_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'user_ids': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_INTEGER))
+            }
+        ),
+        responses={
+            200: "Collaborators removed successfully",
+            400: "Bad Request: Invalid input data.",
+            404: "Not Found: Note not found.",
+            500: "Internal Server Error: An error occurred during removing collaborators."
+        }
+    )
+    @action(detail=False, methods=['post'])
+    def remove_collaborators(self, request):
+        """
+        desc: Removes collaborators from a specific note for the authenticated user.
+        params: request (Request): The HTTP request object with note ID and list of user IDs.
+        return: Response: Success message or error message.
+        """
+        try:
+            note_id = request.data.get('note_id')
+            user_ids = request.data.get('user_ids', [])
+
+            if not isinstance(user_ids, list):
+                return Response(
+                    {'message': 'Invalid data format for user_ids', 'status': 'error'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Fetch the note
+            note = Note.objects.get(pk=note_id, user=request.user)
+
+            # Delete collaborators in bulk
+            deleted_count, _ = Collaborator.objects.filter(note=note, user__id__in=user_ids).delete()
+
+            if deleted_count == 0:
+                return Response(
+                    {'message': 'No collaborators were removed. The provided user IDs may not be collaborators on this note.', 'status': 'error'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            return Response(
+                {'message': 'Collaborators removed successfully', 'status': 'success'},
+                status=status.HTTP_200_OK
+            )
+
+        except Note.DoesNotExist:
+            return Response(
+                {'message': 'Note not found', 'status': 'error', 'errors': 'The requested note does not exist.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            logger.error(f"Unexpected error while removing collaborators: {e}")
+            return Response(
+                {'message': 'An unexpected error occurred', 'status': 'error', 'errors': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
