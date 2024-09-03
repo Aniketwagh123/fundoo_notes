@@ -6,31 +6,24 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError
+from django.db.models import Q
 from loguru import logger
 
 from user.models import User
-
-from .utils import schedule_reminder
-from utils.redisUtils import RedisUtils
 from .models import Collaborator, Note
 from .serializers import NoteSerializer
+from .utils import schedule_reminder
+from utils.redisUtils import RedisUtils
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from .models import Note
 from drf_yasg import openapi
 
-# TODO: retrive all nots of collaboraters also use Q object
-# TODO: menytomeny for label and note
+
 class NoteViewSet(viewsets.ViewSet):
     """
     A ViewSet for viewing, editing, archiving, and trashing user notes.
 
     desc: Handles CRUD operations and custom actions for user notes.
     """
-
-    """ Swagger_atuo_schema()"""
 
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -41,7 +34,7 @@ class NoteViewSet(viewsets.ViewSet):
 
     def list(self, request):
         """
-        desc: Fetches all notes for the authenticated user.
+        desc: Fetches all notes for the authenticated user, including collaborative notes.
         params: request (Request): The HTTP request object.
         return: Response: Serialized list of notes or error message.
         """
@@ -53,7 +46,11 @@ class NoteViewSet(viewsets.ViewSet):
                 logger.info("Returning notes from cache.")
                 notes_data = json.loads(notes_data)  # type: ignore
             else:
-                queryset = Note.objects.filter(user=request.user)
+                queryset = Note.objects.filter(
+                    Q(user=request.user) | Q(collaborator__user=request.user),
+                    is_archive=False,
+                    is_trash=False
+                ).distinct()
                 serializer = NoteSerializer(queryset, many=True)
                 notes_data = serializer.data
                 logger.info(f"info {notes_data}")
@@ -88,9 +85,12 @@ class NoteViewSet(viewsets.ViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    @swagger_auto_schema(operation_description="Creation of note", request_body=NoteSerializer,
-                         responses={201: NoteSerializer, 400: "Bad Request: Invalid input data.",
-                                    500: "Internal Server Error: An error occurred during Creating note."})
+    @swagger_auto_schema(
+        operation_description="Creation of note",
+        request_body=NoteSerializer,
+        responses={201: NoteSerializer, 400: "Bad Request: Invalid input data.",
+                   500: "Internal Server Error: An error occurred during Creating note."}
+    )
     def create(self, request):
         """
         desc: Creates a new note for the authenticated user.
@@ -101,19 +101,11 @@ class NoteViewSet(viewsets.ViewSet):
             serializer = NoteSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             note = serializer.save(user=request.user)
-            # Schedule the task if reminder is set
+            # Schedule the task if a reminder is set
             if note.reminder:  # type: ignore
                 schedule_reminder(note)  # type: ignore
 
-            cache_key = f"user_{request.user.id}"
-            notes_data = self.redis.get(cache_key)
-            if notes_data:
-                notes_data = json.loads(notes_data)  # type: ignore
-            else:
-                notes_data = []
-
-            notes_data.append(serializer.data)
-            self.redis.save(cache_key, json.dumps(notes_data))
+            self.redis.delete(f"user_{request.user.id}")
 
             return Response({
                 "message": "Note created successfully",
@@ -168,7 +160,9 @@ class NoteViewSet(viewsets.ViewSet):
                 else:
                     raise ObjectDoesNotExist
 
-            note = Note.objects.get(pk=pk, user=request.user)
+            note = Note.objects.get(
+                Q(pk=pk) & (Q(user=request.user) | Q(collaborator__user=request.user))
+            )
             serializer = NoteSerializer(note)
             note_data = serializer.data
 
@@ -210,8 +204,12 @@ class NoteViewSet(viewsets.ViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    @swagger_auto_schema(operation_description="Updation of note", request_body=NoteSerializer, responses={201: NoteSerializer, 400: "Bad Request: Invalid input data.",
-                                                                                                           500: "Internal Server Error: An error occurred during updating note."})
+    @swagger_auto_schema(
+        operation_description="Updation of note",
+        request_body=NoteSerializer,
+        responses={201: NoteSerializer, 400: "Bad Request: Invalid input data.",
+                   500: "Internal Server Error: An error occurred during updating note."}
+    )
     def update(self, request, pk=None):
         """
         desc: Updates a specific note for the authenticated user.
@@ -221,7 +219,9 @@ class NoteViewSet(viewsets.ViewSet):
         return: Response: Serialized note data or error message.
         """
         try:
-            note = Note.objects.get(pk=pk, user=request.user)
+            note = Note.objects.get(
+                Q(pk=pk) & (Q(user=request.user) | Q(collaborator__user=request.user))
+            )
             serializer = NoteSerializer(note, data=request.data)
             serializer.is_valid(raise_exception=True)
             note = serializer.save()
@@ -229,16 +229,7 @@ class NoteViewSet(viewsets.ViewSet):
             if note.reminder:  # type: ignore
                 schedule_reminder(note)  # type: ignore
 
-            cache_key = f"user_{request.user.id}"
-            notes_data = self.redis.get(cache_key)
-            if notes_data:
-                notes_data = json.loads(notes_data)  # type: ignore
-                for idx, existing_note in enumerate(notes_data):
-                    if existing_note['id'] == int(pk):  # type: ignore
-                        notes_data[idx] = serializer.data
-                        break
-
-                self.redis.save(cache_key, json.dumps(notes_data))
+            self.redis.delete(f"user_{request.user.id}")
 
             return Response({
                 "message": "Note updated successfully",
@@ -276,8 +267,12 @@ class NoteViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-    @swagger_auto_schema(operation_description="Deletion of note", request_body=NoteSerializer, responses={201: NoteSerializer, 400: "Bad Request: Invalid input data.",
-                                                                                                           500: "Internal Server Error: An error occurred during deleting note."})
+    @swagger_auto_schema(
+        operation_description="Deletion of note",
+        request_body=NoteSerializer,
+        responses={201: NoteSerializer, 400: "Bad Request: Invalid input data.",
+                   500: "Internal Server Error: An error occurred during deleting note."}
+    )
     def destroy(self, request, pk=None):
         """
         desc: Deletes a specific note for the authenticated user.
@@ -287,22 +282,17 @@ class NoteViewSet(viewsets.ViewSet):
         return: Response: Success message or error message.
         """
         try:
-            note = Note.objects.get(pk=pk, user=request.user)
+            note = Note.objects.get(
+                Q(pk=pk) & (Q(user=request.user) | Q(collaborator__user=request.user))
+            )
             note.delete()
 
-            cache_key = f"user_{request.user.id}"
-            notes_data = self.redis.get(cache_key)
-            if notes_data:
-                notes_data = json.loads(notes_data)  # type: ignore
-                notes_data = [
-                    note for note in notes_data if note['id'] != int(pk)]  # type: ignore
-
-                self.redis.save(cache_key, json.dumps(notes_data))
+            self.redis.delete(f"user_{request.user.id}")
 
             return Response({
                 "message": "Note deleted successfully",
                 "status": "success"
-            }, status=status.HTTP_204_NO_CONTENT)
+            })
 
         except ObjectDoesNotExist:
             return Response(
@@ -321,7 +311,7 @@ class NoteViewSet(viewsets.ViewSet):
                     'status': 'error',
                     'errors': str(e)
                 },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
             logger.error(f"Unexpected error while deleting note: {e}")
@@ -331,40 +321,111 @@ class NoteViewSet(viewsets.ViewSet):
                     'status': 'error',
                     'errors': str(e)
                 },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    @swagger_auto_schema(operation_description="Archive note", request_body=NoteSerializer, responses={201: NoteSerializer, 400: "Bad Request: Invalid input data.",
+                                                                                                       500: "Internal Server Error: An error occurred during archive note."})
+    @action(detail=True, methods=['patch'])
+    def is_archive(self, request, pk=None):
+        """
+        desc: Toggles the archive status of a specific note.
+        params:
+            request (Request): The HTTP request object.
+            pk (int): Primary key of the note.
+        return: Response: Updated note data or error message.
+        """
+        try:
+            note = Note.objects.get(
+                Q(pk=pk) & (Q(user=request.user) | Q(collaborator__user=request.user))
+            )
+            note.is_archive = not note.is_archive
+            note.save()
+            self.redis.delete(f"user_{request.user.id}")
+            serializer = NoteSerializer(note, raise_exception=True)
+            return Response(serializer.data)
+        except ObjectDoesNotExist:
+            return Response(
+                {
+                    'message': 'Note not found',
+                    'status': 'error',
+                    'errors': 'The requested note does not exist.'
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except DatabaseError as e:
+            logger.error(f"Database error while toggling archive status: {e}")
+            return Response(
+                {
+                    'message': 'Failed to toggle archive status',
+                    'status': 'error',
+                    'errors': str(e)
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        except Exception as e:
+            logger.error(
+                f"Unexpected error while toggling archive status: {e}")
+            return Response(
+                {
+                    'message': 'An unexpected error occurred',
+                    'status': 'error',
+                    'errors': str(e)
+                },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    @swagger_auto_schema(operation_description="Archive note", request_body=NoteSerializer, responses={201: NoteSerializer, 400: "Bad Request: Invalid input data.",
-                                                                                                       500: "Internal Server Error: An error occurred during archive note."})
-    @action(detail=False, methods=['post'])
-    def archive(self, request):
+    @action(detail=False, methods=['get'])
+    def archived(self, request):
         """
-        desc: Archives the specified note for the authenticated user.
-        params: request (Request): The HTTP request object with note ID.
-        return: Response: Success message or error message.
+        desc: Fetches all archived notes for the authenticated user.
+        params: request (Request): The HTTP request object.
+        return: Response: Serialized list of archived notes or error message.
         """
         try:
-            note_id = request.data.get('note_id')
-            note = Note.objects.get(pk=note_id, user=request.user)
-            note.is_archived = True  # type: ignore
+            
+            queryset = Note.objects.filter(Q(is_archive=True) &  (Q(user=request.user) | Q(collaborator__user=request.user)))
+            serializer = NoteSerializer(queryset, many=True)
+            return Response(serializer.data)
+        except DatabaseError as e:
+            logger.error(f"Database error while fetching archived notes: {e}")
+            return Response(
+                {
+                    'message': 'Failed to fetch archived notes',
+                    'status': 'error',
+                    'errors': str(e)
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        except Exception as e:
+            logger.error(
+                f"Unexpected error while fetching archived notes: {e}")
+            return Response(
+                {
+                    'message': 'An unexpected error occurred',
+                    'status': 'error',
+                    'errors': str(e)
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=['patch'])
+    def is_trash(self, request, pk=None):
+        """
+        desc: Toggles the trash status of a specific note.
+        params:
+            request (Request): The HTTP request object.
+            pk (int): Primary key of the note.
+        return: Response: Updated note data or error message.
+        """
+        try:
+            note = Note.objects.get(
+                Q(pk=pk) & (Q(user=request.user) | Q(collaborator__user=request.user))
+            )
+            note.is_trash = not note.is_trash
             note.save()
-
-            cache_key = f"user_{request.user.id}"
-            notes_data = self.redis.get(cache_key)
-            if notes_data:
-                notes_data = json.loads(notes_data)  # type: ignore
-                for idx, existing_note in enumerate(notes_data):
-                    if existing_note['id'] == int(note_id):
-                        existing_note['is_archived'] = True
-                        break
-
-                self.redis.save(cache_key, json.dumps(notes_data))
-
-            return Response({
-                "message": "Note archived successfully",
-                "status": "success"
-            })
-
+            self.redis.delete(f"user_{request.user.id}")
+            serializer = NoteSerializer(note)
+            return Response(serializer.data)
         except ObjectDoesNotExist:
             return Response(
                 {
@@ -375,87 +436,57 @@ class NoteViewSet(viewsets.ViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
         except DatabaseError as e:
-            logger.error(f"Database error while archiving note: {e}")
+            logger.error(f"Database error while toggling trash status: {e}")
             return Response(
                 {
-                    'message': 'Failed to archive note',
+                    'message': 'Failed to toggle trash status',
                     'status': 'error',
                     'errors': str(e)
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         except Exception as e:
-            logger.error(f"Unexpected error while archiving note: {e}")
+            logger.error(f"Unexpected error while toggling trash status: {e}")
             return Response(
                 {
                     'message': 'An unexpected error occurred',
                     'status': 'error',
                     'errors': str(e)
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    @swagger_auto_schema(operation_description="Trashed note", request_body=NoteSerializer, responses={201: NoteSerializer, 400: "Bad Request: Invalid input data.",
-                                                                                                       500: "Internal Server Error: An error occurred during trashed not."})
-    @action(detail=False, methods=['post'])
-    def trash(self, request):
+    @action(detail=False, methods=['get'])
+    def trashed(self, request):
         """
-        desc: Moves the specified note to trash for the authenticated user.
-        params: request (Request): The HTTP request object with note ID.
-        return: Response: Success message or error message.
+        desc: Fetches all trashed notes for the authenticated user.
+        params: request (Request): The HTTP request object.
+        return: Response: Serialized list of trashed notes or error message.
         """
         try:
-            note_id = request.data.get('note_id')
-            note = Note.objects.get(pk=note_id, user=request.user)
-            note.is_trashed = True  # type: ignore
-            note.save()
-
-            cache_key = f"user_{request.user.id}"
-            notes_data = self.redis.get(cache_key)
-            if notes_data:
-                notes_data = json.loads(notes_data)  # type: ignore
-                for idx, existing_note in enumerate(notes_data):
-                    if existing_note['id'] == int(note_id):
-                        existing_note['is_trashed'] = True
-                        break
-
-                self.redis.save(cache_key, json.dumps(notes_data))
-
-            return Response({
-                "message": "Note moved to trash successfully",
-                "status": "success"
-            })
-
-        except ObjectDoesNotExist:
-            return Response(
-                {
-                    'message': 'Note not found',
-                    'status': 'error',
-                    'errors': 'The requested note does not exist.'
-                },
-                status=status.HTTP_404_NOT_FOUND
-            )
+            queryset = Note.objects.filter(Q(is_trash=True) & (Q(user=request.user) | Q(collaborator__user=request.user)))
+            serializer = NoteSerializer(queryset, many=True)
+            return Response(serializer.data)
         except DatabaseError as e:
-            logger.error(f"Database error while moving note to trash: {e}")
+            logger.error(f"Database error while fetching trashed notes: {e}")
             return Response(
                 {
-                    'message': 'Failed to move note to trash',
+                    'message': 'Failed to fetch trashed notes',
                     'status': 'error',
                     'errors': str(e)
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         except Exception as e:
-            logger.error(f"Unexpected error while moving note to trash: {e}")
+            logger.error(f"Unexpected error while fetching trashed notes: {e}")
             return Response(
                 {
                     'message': 'An unexpected error occurred',
                     'status': 'error',
                     'errors': str(e)
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
     @swagger_auto_schema(
         operation_description="Add collaborators to a note",
         request_body=openapi.Schema(
