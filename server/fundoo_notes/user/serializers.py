@@ -34,6 +34,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'email', 'password',
                   'first_name', 'last_name', 'is_verified']
+        read_only_fields = ['is_verified']
 
     def create(self, validated_data):
         user = User.objects.create_user(

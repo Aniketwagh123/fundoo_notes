@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from label.models import Label
 
 class Note(models.Model):
     title = models.CharField(max_length=255, null=False, blank=False, db_index=True)
@@ -17,6 +18,8 @@ class Note(models.Model):
         through='Collaborator',
         related_name='collaborated_notes'
     )
+
+    labels = models.ManyToManyField(Label, related_name='notes', blank=True)
 
     def __str__(self):
         return self.title
