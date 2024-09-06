@@ -40,6 +40,20 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+  
+  # pytest:
+  #   container_name: pytest
+  #   build: .
+  #   command: pytest
+  #   volumes:
+  #     - .:/app
+  #   environment:
+  #     - DJANGO_SETTINGS_MODULE=fundoo_notes.settings  # Ensure this is set
+  #   depends_on:
+  #     - db
+  #     - redis
+  #   networks:
+  #     - mynetwork
 
   redis:
     container_name: redis

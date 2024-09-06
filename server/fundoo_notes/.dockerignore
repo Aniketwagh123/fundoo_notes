@@ -22,7 +22,7 @@ var/
 wheels/
 share/python-wheels/
 *.egg-info/
-.installed.cfg
+; .installed.cfg
 *.egg
 MANIFEST
 
@@ -43,13 +43,13 @@ pip-delete-this-directory.txt
 htmlcov/
 .tox/
 .nox/
-.coverage
-.coverage.*
+; .coverage
+; .coverage.*
 .cache
 nosetests.xml
 coverage.xml
-*.cover
-*.py,cover
+; *.cover
+; *.py,cover
 .hypothesis/
 .pytest_cache/
 cover/

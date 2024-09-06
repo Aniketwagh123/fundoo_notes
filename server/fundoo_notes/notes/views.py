@@ -293,7 +293,7 @@ class NoteViewSet(viewsets.ViewSet):
             return Response({
                 "message": "Note deleted successfully",
                 "status": "success"
-            })
+            },status= status.HTTP_204_NO_CONTENT)
 
         except ObjectDoesNotExist:
             return Response(

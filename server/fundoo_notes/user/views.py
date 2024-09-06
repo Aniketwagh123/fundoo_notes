@@ -15,6 +15,8 @@ from .models import User
 from .utils.JWTUtil import JWTUtil
 from rest_framework.permissions import AllowAny
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import serializers
+
 
 
 class RegisterUserView(APIView):
@@ -48,12 +50,8 @@ class RegisterUserView(APIView):
                     encoded_token = JWTUtil.encode_token(token_payload)
 
                     verification_link = request.build_absolute_uri(
-                        reverse('verify_registered_user', args=[encoded_token])
+                        reverse('verify_email', args=[encoded_token])
                     )
-
-                    # Send verification email
-                    # send_verification_email(user, verification_link)
-                    # Enqueue the email sending task
                     send_verification_email_task.delay(
                         user.email, verification_link)  # type: ignore
 
@@ -77,28 +75,34 @@ class RegisterUserView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import AllowAny
+from drf_yasg.utils import swagger_auto_schema
+from .serializers import LoginSerializer
+
 class LoginUserView(APIView):
     """
-    desc: Handles user login by validating credentials and returning 
-          a response with a JWT token if successful.
-    params: 
-        - request (Request): The HTTP request object containing the login data.
-        - *args, **kwargs: Additional arguments and keyword arguments.
-    return: 
-        - Response: HTTP response with a success or error message and JWT token if successful.
+    Handles user login by validating credentials and returning 
+    a response with a JWT token if successful.
     """
-    @swagger_auto_schema(operation_description="user register", request_body=LoginSerializer, responses={201: LoginSerializer, 400: "Bad Request: Invalid input data.",
-                                                                                                         500: "Internal Server Error: An error occurred during Login."})
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(operation_description="User login", request_body=LoginSerializer, responses={200: LoginSerializer, 400: "Bad Request: Invalid input data.",
+                                                                                                     401: "Unauthorized: Invalid credentials.",
+                                                                                                     403: "Forbidden: Unverified user.",
+                                                                                                     500: "Internal Server Error: Token generation error."})
     def post(self, request, *args, **kwargs):
-        serializer = LoginSerializer(
-            data=request.data, context={'request': request})
+        serializer = LoginSerializer(data=request.data, context={'request': request})
         try:
             if serializer.is_valid():
                 response_data = serializer.save()
                 response = {
                     'message': 'User login successful',
                     'status': 'success',
-                    **response_data  # Merging the response data directly # type: ignore
+                    'data': response_data['data'],  # Include user data # type: ignore
+                    'tokens': response_data['tokens']  # Include tokens # type: ignore
                 }
                 return Response(response, status=status.HTTP_200_OK)
 
@@ -108,13 +112,16 @@ class LoginUserView(APIView):
                 'errors': serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        except Exception as e:
+        except serializers.ValidationError as e:
+            if 'user is not verified' in str(e.detail):  # Check error message in list
+                return Response({
+                    'message': 'User is not verified',
+                    'status': 'error'
+                }, status=status.HTTP_403_FORBIDDEN)
             return Response({
-                'message': 'An unexpected error occurred during login',
-                'status': 'error',
-                'errors': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+                'message': 'Invalid credentials or other error',
+                'status': 'error'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 def verify_registered_user(request, token: str):
