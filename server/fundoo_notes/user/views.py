@@ -16,6 +16,7 @@ from .utils.JWTUtil import JWTUtil
 from rest_framework.permissions import AllowAny
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import serializers
+from loguru import logger
 
 
 
@@ -97,7 +98,9 @@ class LoginUserView(APIView):
         serializer = LoginSerializer(data=request.data, context={'request': request})
         try:
             if serializer.is_valid():
+                
                 response_data = serializer.save()
+                logger.info("???????/////")
                 response = {
                     'message': 'User login successful',
                     'status': 'success',

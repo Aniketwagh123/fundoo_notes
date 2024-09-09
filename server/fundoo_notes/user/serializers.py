@@ -7,6 +7,7 @@ from django.utils.timezone import now
 
 from .utils.utils import get_tokens_for_user
 from .models import User
+from loguru import logger
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -63,8 +64,10 @@ class LoginSerializer(serializers.Serializer):
     def create(self, validated_data):
         email = validated_data.get('email')
         password = validated_data.get('password')
-
+        logger.info(email)
+        logger.info(password)
         user = authenticate(email=email, password=password)
+        logger.info(user)
         if user is None:
             raise serializers.ValidationError({
                 'message': 'Invalid email or password',
@@ -76,6 +79,7 @@ class LoginSerializer(serializers.Serializer):
         # Update last login time
         user.last_login = now()
         user.save()
+        logger.info(user)
 
         # Generate tokens for the user
         tokens = get_tokens_for_user(user)

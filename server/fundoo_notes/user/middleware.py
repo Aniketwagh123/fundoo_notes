@@ -1,6 +1,7 @@
 from django.utils.deprecation import MiddlewareMixin
 from .models import Log
 from django.db.models import F 
+from loguru import logger
 
 class RequestLogMiddleware(MiddlewareMixin):
     """
@@ -23,6 +24,8 @@ class RequestLogMiddleware(MiddlewareMixin):
         """
         method = request.method
         url = request.path
+
+        logger.info(f"{method} - {url}")
 
         # Try to update the count for the existing log entry
         updated = Log.objects.filter(
