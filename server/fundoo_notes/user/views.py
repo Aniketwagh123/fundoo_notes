@@ -1,3 +1,7 @@
+from django.shortcuts import redirect, render
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render
+from .serializers import LoginSerializer
 from django.urls import reverse
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -9,14 +13,15 @@ from datetime import datetime, timedelta, timezone
 
 from .task import send_verification_email_task
 
-from .utils.utils import send_verification_email
 from .serializers import RegisterSerializer, LoginSerializer
 from .models import User
 from .utils.JWTUtil import JWTUtil
 from rest_framework.permissions import AllowAny
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import serializers
-
+from django.shortcuts import redirect
+from loguru import logger
+from django.contrib import messages
 
 
 class RegisterUserView(APIView):
@@ -75,13 +80,6 @@ class RegisterUserView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import AllowAny
-from drf_yasg.utils import swagger_auto_schema
-from .serializers import LoginSerializer
-
 class LoginUserView(APIView):
     """
     Handles user login by validating credentials and returning 
@@ -90,19 +88,22 @@ class LoginUserView(APIView):
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(operation_description="User login", request_body=LoginSerializer, responses={200: LoginSerializer, 400: "Bad Request: Invalid input data.",
-                                                                                                     401: "Unauthorized: Invalid credentials.",
-                                                                                                     403: "Forbidden: Unverified user.",
-                                                                                                     500: "Internal Server Error: Token generation error."})
+                                                                                                      401: "Unauthorized: Invalid credentials.",
+                                                                                                      403: "Forbidden: Unverified user.",
+                                                                                                      500: "Internal Server Error: Token generation error."})
     def post(self, request, *args, **kwargs):
-        serializer = LoginSerializer(data=request.data, context={'request': request})
+        serializer = LoginSerializer(
+            data=request.data, context={'request': request})
         try:
             if serializer.is_valid():
                 response_data = serializer.save()
                 response = {
                     'message': 'User login successful',
                     'status': 'success',
-                    'data': response_data['data'],  # Include user data # type: ignore
-                    'tokens': response_data['tokens']  # Include tokens # type: ignore
+                    # Include user data # type: ignore
+                    'data': response_data['data'],  # type: ignore
+                    # Include tokens # type: ignore
+                    'tokens': response_data['tokens']  # type: ignore
                 }
                 return Response(response, status=status.HTTP_200_OK)
 
@@ -113,7 +114,8 @@ class LoginUserView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         except serializers.ValidationError as e:
-            if 'user is not verified' in str(e.detail):  # Check error message in list
+            # Check error message in list
+            if 'user is not verified' in str(e.detail):
                 return Response({
                     'message': 'User is not verified',
                     'status': 'error'
@@ -122,6 +124,7 @@ class LoginUserView(APIView):
                 'message': 'Invalid credentials or other error',
                 'status': 'error'
             }, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['GET'])
 def verify_registered_user(request, token: str):
@@ -178,3 +181,88 @@ def verify_registered_user(request, token: str):
             'status': 'error',
             'errors': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+def signup(request):
+    """
+    Handles user signup by rendering the signup page on GET request and processing the form on POST request.
+
+    params:
+        - request (Request): The HTTP request object.
+    return:
+        - Response: Renders the signup HTML template or redirects to signin on successful signup.
+    """
+    if request.method == 'POST':
+        username = request.POST['username']
+        email = request.POST['email']
+        password1 = request.POST['password1']
+        password2 = request.POST['password2']
+
+        if password1 != password2:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'signup.html')
+
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Email is already taken.')
+            return render(request, 'signup.html')
+
+        user = User.objects.create_user(
+            username=username, email=email, password=password1)
+        user.is_active = False  # Deactivate account until it is confirmed
+        user.save()
+
+        # Send verification email
+        verification_link = request.build_absolute_uri(
+            reverse('verify_email', args=[user.id]))  # type: ignore
+        send_verification_email_task.delay(user.email, verification_link)
+
+        messages.success(
+            request, 'Account created successfully! Please check your email to verify your account.')
+        return redirect('signin')
+
+    return render(request, 'signup.html')
+
+
+def signin(request):
+    """
+    Handles user signin by rendering the signin page on GET request and processing the form on POST request.
+
+    params:
+        - request (Request): The HTTP request object.
+    return:
+        - Response: Renders the signin HTML template or redirects to home on successful login.
+    """
+    if request.method == 'POST':
+        email = request.POST['email']
+        password = request.POST['password']
+
+        user = authenticate(request, username=email, password=password)
+
+        if user is not None:
+            if user.is_verified:  # type: ignore # Check if user is verified
+                login(request, user)
+                messages.success(request, 'Login successful! Welcome back.')
+                return redirect('home')
+            else:
+                messages.error(request, 'Your account is not verified yet.')
+                return render(request, 'signin.html')
+        else:
+            messages.error(request, 'Invalid email or password.')
+            return render(request, 'signin.html')
+
+    return render(request, 'signin.html')
+
+
+def home(request):
+    """
+    Renders the home page with user details.
+
+    params:
+        - request (Request): The HTTP request object.
+    return:
+        - Response: Renders the home HTML template with user details.
+    """
+    if request.user.is_authenticated:
+        return render(request, 'home.html', {'user': request.user})
+    else:
+        return render(request, 'signin.html', {'message': 'Please login to view the home page.'})
