@@ -1,0 +1,145 @@
+.container {
+  max-width: 900px;
+  margin: 4rem auto;
+  padding: 2rem;
+  border: 1px solid rgb(228, 228, 228);
+  border-radius: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  
+}
+h2{
+    margin-bottom: 40px;
+}
+
+.topContent {
+  text-align: center;
+  width: 100%;
+}
+
+.logo {
+  width: 80px;
+  margin-bottom: 10px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.column {
+  width: 48%;
+}
+
+.inputs {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.input {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid rgb(228, 228, 228);
+    border-radius: 5px;
+    font-size: 16px;
+    outline: none;
+
+    &:focus {
+        border: 2px solid #1a73e8;
+    }
+}
+
+.inputLabel {
+    position: absolute;
+    top: 15px; /* Normal position */
+    left: 14px;
+    color: rgb(122, 122, 122);
+    font-weight: 100;
+    transition: 0.1s ease;
+    background-color: white;
+    padding: 0 5px;
+
+    /* When the input is focused or not empty */
+    .input:focus ~ &,
+    .input:not(:placeholder-shown) ~ & {
+        top: -7px; /* Move label up */
+        color: #1864c9; /* Change label color */
+        font-size: 13px; /* Change font size */
+    }
+}
+
+
+small {
+  color: #707070;
+  display: block;
+  margin-top: 5px;
+}
+
+.linkBtn {
+  font-size: 14px;
+  color: #1a73e8;
+  text-decoration: none;
+  margin-top: 20px;
+  margin-bottom: 40px;
+}
+
+.btnGroup {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.nextBtn {
+  background-color: #1a73e8;
+  color: white;
+  padding-inline: 25px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  height: 40px;
+}
+
+.nextBtn:hover {
+  background-color: #1864c9;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+  margin-bottom: 80px;
+  input{
+    margin-right: 8px;
+  }
+  label{
+    opacity: 0.7;
+  }
+}
+
+.signupImage {
+  width: 20vw;
+  height: auto;
+//   transform: scale(2);
+  mix-blend-mode:color-burn; 
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .column {
+    width: 100%;
+  }
+  .signupImage {
+    display: none;
+  }
+
+  .container {
+    margin-inline: 10px; /* Minimum left margin on smaller screens */
+    width: calc(100% - 20px); /* Adjust width to account for margins */
+}
+}
