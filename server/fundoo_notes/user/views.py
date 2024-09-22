@@ -16,6 +16,8 @@ from .utils.JWTUtil import JWTUtil
 from rest_framework.permissions import AllowAny
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import serializers
+from django.conf import settings
+from loguru import logger
 
 
 
@@ -52,6 +54,7 @@ class RegisterUserView(APIView):
                     verification_link = request.build_absolute_uri(
                         reverse('verify_email', args=[encoded_token])
                     )
+                    logger.info(settings.EMAIL_HOST_USER)
                     send_verification_email_task.delay(
                         user.email, verification_link)  # type: ignore
 
@@ -120,7 +123,8 @@ class LoginUserView(APIView):
                 }, status=status.HTTP_403_FORBIDDEN)
             return Response({
                 'message': 'Invalid credentials or other error',
-                'status': 'error'
+                'status': 'error',
+                'error':str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])

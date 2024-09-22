@@ -30,9 +30,29 @@ SECRET_KEY = 'django-insecure-oz=b6wzr@y!d$nn8_scbj86y!k$a%*#5^5s=6xmdmfo(xzk@2z
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '*']
-AUTH_USER_MODEL = 'user.User'
+ALLOWED_HOSTS = ['*']
 
+AUTH_USER_MODEL = 'user.User'
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173', 
+      # Your frontend's origin
+]
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+    # Add other trusted origins if needed
+]
+SESSION_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SAMESITE = "None"
+# CORS_ORIGIN_ALLOW_ALL = True
+# CORS_ALLOW_ALL_ORIGINS = True  # Not recommended for production
+# CORS_ALLOW_METHODS = [
+#     'DELETE',
+#     'GET',
+#     'OPTIONS',
+#     'PATCH',
+#     'POST',
+#     'PUT',
+# ]
 
 # Application definition
 
@@ -48,6 +68,7 @@ INSTALLED_APPS = [
     'label',
     'django_celery_beat',
     'drf_yasg',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -59,6 +80,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'user.middleware.RequestLogMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'fundoo_notes.urls'
@@ -76,6 +98,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.csrf',
             ],
         },
     },
@@ -90,9 +113,9 @@ WSGI_APPLICATION = 'fundoo_notes.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DATABASE_NAME', 'funfoo_notes'),
+        'NAME': os.getenv('DATABASE_NAME', 'fundoo-notes'),
         'USER': os.getenv('DATABASE_USER', 'postgres'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'Aniket@92774006'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'Aniket@9277'),
         'HOST': os.getenv('DATABASE_HOST', 'db'),
         'PORT': '5432',
     }
@@ -172,10 +195,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # EMAIL_HOST_USER = #sender's email-id
 # EMAIL_HOST_PASSWORD = #password associated with above email-id
 
-# test
+# # test
+# EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+# EMAIL_HOST_USER = '4e4c314d1ced7a'
+# EMAIL_HOST_PASSWORD = '5cfc527be41a93'
+# EMAIL_PORT = '2525'
+
+# Looking to send emails in production? Check out our Email API/SMTP product!
 EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
-EMAIL_HOST_USER = '4e4c314d1ced7a'
-EMAIL_HOST_PASSWORD = '5cfc527be41a93'
+EMAIL_HOST_USER = 'ad28c813f4f9d8'
+EMAIL_HOST_PASSWORD = '3704d001132486'
 EMAIL_PORT = '2525'
 
 # Loguru settings for handlers
