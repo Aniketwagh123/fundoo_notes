@@ -2,8 +2,8 @@ import "./App.css";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/dashboard";
 import NOT_FOUND_404 from "./pages/Error/NOT_FOUND_404"; // Ensure correct path and casing
-import SignIn from "./pages/signin";
-import SignUp from "./pages/signup"; // Ensure correct path and casing
+import SignIn from "./pages/signin/SignIn";
+import SignUp from "./pages/signup/SignUp"; // Ensure correct path and casing
 import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
 
 function AppRoutes() {

@@ -1,49 +1,85 @@
 // SignInForm.jsx
 import PropTypes from "prop-types";
+import { TextField, Button, CircularProgress, Backdrop } from "@mui/material";
 import styles from "./SignIn.module.scss";
+import { useNavigate } from "react-router-dom";
+import Alert from "@mui/material/Alert";
 
-const SignInForm = ({ email, password, loading, error, onEmailChange, onPasswordChange, onSubmit }) => {
+const SignInForm = ({
+  email,
+  password,
+  loading,
+  error,
+  onEmailChange,
+  onPasswordChange,
+  onSubmit,
+}) => {
+  console.log(error);
+  const navigate = useNavigate();
+
+  const emailError =
+    error?.status === "error" && error.message.includes("Invalid email");
+  const passwordError =
+    error?.status === "error" &&
+    error.message.includes("Invalid email or password");
+  const notVerified =
+    error?.status === "error" && error.message.includes("User is not verified");
+
   return (
     <form onSubmit={onSubmit}>
-      <div className={styles.inputs}>
-        <input
-          type="email"
-          value={email}
-          onChange={onEmailChange}
-          className={styles.input}
-          required
-          placeholder=" "
-          disabled={loading} // Disable input when loading
-        />
-        <label htmlFor="email" className={styles.inputLabel}>
-          Email or phone*
-        </label>
-      </div>
-      <div className={styles.inputs}>
-        <input
-          type="password"
-          value={password}
-          onChange={onPasswordChange}
-          className={styles.input}
-          required
-          placeholder=" "
-          disabled={loading} // Disable input when loading
-        />
-        <label htmlFor="password" className={styles.inputLabel}>
-          Password*
-        </label>
-      </div>
+      {notVerified && (
+        <Alert severity="error">
+          Please verify your email address first before proceeding.
+        </Alert>
+      )}
+
+      <TextField
+        error={emailError}
+        id="email"
+        label="Email or phone"
+        value={email}
+        onChange={onEmailChange}
+        helperText={emailError ? error.message : ""}
+        required
+        disabled={loading}
+        fullWidth
+        margin="normal"
+      />
+      <TextField
+        error={passwordError}
+        id="password"
+        label="Password"
+        type="password"
+        value={password}
+        onChange={onPasswordChange}
+        helperText={passwordError ? error.message : ""}
+        required
+        disabled={loading}
+        fullWidth
+        margin="normal"
+      />
       <a href="#" className={styles.linkBtn}>
         Forgot Password?
       </a>
-      {error && <p className={styles.errorMsg}>{error}</p>} {/* Display error */}
       <div className={styles.btnGroup}>
-        <button type="button" className={styles.createBtn} disabled={loading}>
+        <Button
+          variant="outlined"
+          disabled={loading}
+          onClick={() => {
+            navigate("/signup");
+          }}
+        >
           Create account
-        </button>
-        <button type="submit" className={styles.loginBtn} disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'} {/* Change button text when loading */}
-        </button>
+        </Button>
+        <Backdrop
+          sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
+          open={loading}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
+        <Button type="submit" variant="contained" disabled={loading}>
+          Login
+        </Button>
       </div>
     </form>
   );
@@ -54,7 +90,7 @@ SignInForm.propTypes = {
   email: PropTypes.string.isRequired,
   password: PropTypes.string.isRequired,
   loading: PropTypes.bool.isRequired,
-  error: PropTypes.string,
+  error: PropTypes.object, // Update to expect an object
   onEmailChange: PropTypes.func.isRequired,
   onPasswordChange: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,

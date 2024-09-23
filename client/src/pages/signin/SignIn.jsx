@@ -9,12 +9,12 @@ const SignIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState({ status: null, message: "" }); // Initialize error as an object
   const navigate = useNavigate();
 
   const handleLogin = async (email, password) => {
     setLoading(true);
-    setError(null);
+    setError({ status: null, message: "" }); // Reset error
 
     const result = await login(email, password);
     setLoading(false);
@@ -22,7 +22,14 @@ const SignIn = () => {
     if (result.status === "success") {
       navigate("/dashboard");
     } else {
-      setError(result.errors);
+      const errorMessage =
+        result.errors?.message || "An unknown error occurred";
+      setError({
+        status: result.status,
+        message: errorMessage.includes("Invalid")
+          ? "Invalid email or password"
+          : errorMessage,
+      });
     }
   };
 
@@ -42,21 +49,15 @@ const SignIn = () => {
         <p className={styles.heading}>Use your Google Account</p>
       </div>
 
-      {loading ? (
-        <div className={styles.loader}>
-          <h1>Loading...</h1>
-        </div>
-      ) : (
-        <SignInForm
-          email={email}
-          password={password}
-          loading={loading}
-          error={error}
-          onEmailChange={(e) => setEmail(e.target.value)}
-          onPasswordChange={(e) => setPassword(e.target.value)}
-          onSubmit={handleSubmit}
-        />
-      )}
+      <SignInForm
+        email={email}
+        password={password}
+        loading={loading}
+        error={error}
+        onEmailChange={(e) => setEmail(e.target.value)}
+        onPasswordChange={(e) => setPassword(e.target.value)}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 };

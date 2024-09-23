@@ -5,6 +5,7 @@ import { signup } from "../../services/authServices"; // Assuming the service is
 import { useNavigate } from "react-router-dom";
 import SignUpForm from "./SignUpForm"; // Import the new form component
 
+
 const SignUp = () => {
   const [formData, setFormData] = useState({
     firstName: "",
@@ -16,7 +17,7 @@ const SignUp = () => {
     showPassword: false,
   });
   const [loading, setLoading] = useState(false); // Loading state to manage spinner
-  const [error, setError] = useState(null); // State for handling errors
+  const [errors, setError] = useState({}); // State for handling errors
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -30,30 +31,52 @@ const SignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match!");
+      setError({ confirmPassword: "Passwords do not match!" });
       return;
     }
 
-    setLoading(true); // Start loading
-    setError(null); // Reset error state
+    setLoading(true);
+    setError({}); // Reset errors
 
-    const result = await signup(
-      formData.username,
-      formData.username, // Using username for email
-      formData.password,
-      formData.firstName,
-      formData.lastName
-    );
-    setLoading(false); // Stop loading
+    try {
+      const result = await signup(
+        formData.username,
+        formData.email,
+        formData.password,
+        formData.firstName,
+        formData.lastName
+      );
 
-    if (result.status === "success") {
-      navigate("/login"); // Redirect to login after successful signup
-    } else {
-      setError(result.errors); // Display error message
+      if (result.status === "success") {
+        navigate("/login"); // Redirect on success
+      } else if (result.status === "error") {
+        const errorMessages = result.errors || {};
+        console.log(errorMessages);
+        setError({
+          email: errorMessages.errors.email?.join(", "),
+          username: errorMessages.errors.username?.join(", "),
+          password: errorMessages.errors.password?.join(", "),
+          confirmPassword:
+            formData.password !== formData.confirmPassword
+              ? "Passwords do not match!"
+              : "",
+        });
+      } else {
+        setError({
+          general: result.message || "Registration failed. Please try again.",
+        });
+      }
+      // eslint-disable-next-line no-unused-vars
+    } catch (err) {
+      setError({
+        general: "An unexpected error occurred. Please try again later.",
+      });
     }
-  };
 
+    setLoading(false);
+  };
   return (
     <div className={styles.container}>
       <div className={styles.topContent}>
@@ -64,23 +87,19 @@ const SignUp = () => {
         />
         <h2>Create your Google Account</h2>
       </div>
-      {loading && (
-        <div className={styles.loader}>
-          <h1>Loading...</h1>
-        </div>
-      )}
-      {!loading && (
+      <div className={styles.row}>
         <SignUpForm
           formData={formData}
           loading={loading}
-          error={error}
+          errors={errors}
           onChange={handleChange}
           onSubmit={handleSubmit}
           showPassword={formData.showPassword}
         />
-      )}
-      <div className={styles.imageContainer}>
-        <img src="signup.png" alt="Signup" className={styles.signupImage} />
+
+        <div className={styles.imageContainer}>
+          <img src="signup.png" alt="Signup" className={styles.signupImage} />
+        </div>
       </div>
     </div>
   );
