@@ -1,10 +1,16 @@
 import "./App.css";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Dashboard from "./pages/dashboard";
+import DashboardLayout from "./layout/DashboardLayout";
+import CompletePage from "./pages/complete/CompletePage";
+import EditLabelsPage from "./pages/edit_labels/EditLabelsPage";
 import NOT_FOUND_404 from "./pages/Error/NOT_FOUND_404"; // Ensure correct path and casing
+import NotePage from "./pages/notes/NotePage";
+import ReminderPage from "./pages/reminder/ReminderPage";
 import SignIn from "./pages/signin/SignIn";
 import SignUp from "./pages/signup/SignUp"; // Ensure correct path and casing
 import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
+import TrashPage from "./pages/trash/TrashPage";
+import ArchivePage from "./pages/archive/ArchivePage";
 
 function AppRoutes() {
   return (
@@ -26,10 +32,17 @@ function AppRoutes() {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <Dashboard />
+            <DashboardLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route index element={<NotePage/>} />
+        <Route path="reminder" element={<ReminderPage/>} />
+        <Route path="complete" element={<CompletePage/>} />
+        <Route path="edit-labels" element={<EditLabelsPage/>} />
+        <Route path="archive" element={<ArchivePage/>} />
+        <Route path="trash" element={<TrashPage/>} />
+      </Route>
       <Route path="*" element={<Navigate to="/404" />} />
     </Routes>
   );
