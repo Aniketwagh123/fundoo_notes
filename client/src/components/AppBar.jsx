@@ -76,7 +76,7 @@ const AppBar = styled(
   zIndex: theme.zIndex.drawer + 1,
 }));
 
-export default function PrimarySearchAppBar() {
+export default function PrimarySearchAppBar({ setisDrowerOpen, isDrowerOpen }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
   const [listView, setListView] = useState(true); // State to manage list/grid view
@@ -197,6 +197,9 @@ export default function PrimarySearchAppBar() {
             color="inherit"
             aria-label="open drawer"
             sx={{ mr: 2 }}
+            onClick={() => {
+              setisDrowerOpen(!isDrowerOpen);
+            }}
           >
             <MenuIcon />
           </IconButton>
@@ -293,4 +296,7 @@ export default function PrimarySearchAppBar() {
       {renderMenu}
     </Box>
   );
+  
 }
+
+

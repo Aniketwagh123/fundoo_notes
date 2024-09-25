@@ -20,6 +20,8 @@ import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import { useNavigate } from "react-router-dom";
 const drawerWidth = 240;
+import { useLocation } from "react-router-dom";
+import PropTypes from "prop-types";
 
 const openedMixin = (theme) => ({
   width: drawerWidth,
@@ -79,11 +81,36 @@ const Drawer = styled(MuiDrawer, {
   ],
 }));
 
-export default function MiniDrawer() {
+export default function MiniDrawer({ isDrowerOpen }) {
   const theme = useTheme();
-  const [open, setOpen] = React.useState(true);
+  //   const [open, setOpen] = React.useState(true);
   const navigate = useNavigate();
   const [selectedIndex, setSelectedIndex] = React.useState(0);
+
+  const location = useLocation();
+
+  React.useLayoutEffect(() => {
+    console.log(location.pathname);
+    switch (location.pathname) {
+      case "/dashboard/reminder":
+        setSelectedIndex(1);
+        break;
+      case "/dashboard/complete":
+        setSelectedIndex(2);
+        break;
+      case "/dashboard/edit-labels":
+        setSelectedIndex(3);
+        break;
+      case "/dashboard/archive":
+        setSelectedIndex(4);
+        break;
+      case "/dashboard/trash":
+        setSelectedIndex(5);
+        break;
+      default:
+        setSelectedIndex(0); // Default to Notes
+    }
+  }, [location.pathname]);
 
   const handleNavigation = (index) => {
     setSelectedIndex(index);
@@ -115,9 +142,9 @@ export default function MiniDrawer() {
     <Box sx={{ display: "flex" }}>
       {/* <CssBaseline /> */}
 
-      <Drawer variant="permanent" open={open}>
+      <Drawer variant="permanent" open={isDrowerOpen}>
         <DrawerHeader>
-          <IconButton onClick={() => setOpen(!open)}>
+          <IconButton>
             {theme.direction === "rtl" ? (
               <ChevronRightIcon />
             ) : (
@@ -172,7 +199,6 @@ export default function MiniDrawer() {
                         borderBottomRightRadius:
                           selectedIndex === index ? 25 : "inherit",
                         transition: "all 0.3s ease",
-                        
                       },
                 ]}
               >
@@ -228,3 +254,8 @@ export default function MiniDrawer() {
     </Box>
   );
 }
+
+// Define prop types
+MiniDrawer.propTypes = {
+  isDrowerOpen:PropTypes.bool.isRequired
+};

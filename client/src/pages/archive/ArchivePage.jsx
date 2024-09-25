@@ -1,7 +1,6 @@
-import { Box } from "@mui/material";
 
 const ArchivePage = () => {
-  return <Box>ArchivePage</Box>;
+  return <h1>hiii</h1>;
 };
 
 export default ArchivePage;
