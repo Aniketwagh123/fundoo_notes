@@ -1,10 +1,9 @@
-// NoteItem.jsx
+// note/NoteItemCardxjsx
 import { useState } from "react";
 import { alpha, Box, Card, Typography } from "@mui/material";
-import ReactMarkdown from "react-markdown";
 import BottomIconOptionsBar from "./BottomIconOptionsBar";
 
-const NoteItem = ({ item }) => {
+const NoteItem = ({ item, noteclick }) => {
   const [isHovered, setIsHovered] = useState(false); // State to track hover status
 
   return (
@@ -17,12 +16,8 @@ const NoteItem = ({ item }) => {
         borderColor: alpha("#000", 0.2),
         borderRadius: "10px",
         marginBottom: 2,
-        // position: "relative",
-        // width: "300px",
-        maxWidth:"300px",
+        maxWidth: "300px",
         background: `url(${item.image})`,
-
-        // backgroundPosition: "center", // Optional: center the image
         backgroundRepeat: "no-repeat",
         backgroundBlendMode: "overlay",
         backgroundSize: "cover",
@@ -30,11 +25,30 @@ const NoteItem = ({ item }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Typography variant="h6" style={{ lineHeight: "20px" }}>
-        {item.title}{" "}
+      {/* Title with click handler */}
+      <Typography
+        variant="h6"
+        style={{ lineHeight: "20px", cursor: "pointer" }}
+        onClick={(e) => {
+          // e.stopPropagation(); // Prevents event bubbling
+          noteclick; // Use the function passed as prop
+        }}
+      >
+        {item.title}
       </Typography>
+
       <Box height={15}></Box>
-      {item.description}
+
+      {/* Description with click handler */}
+      <Typography
+        style={{ cursor: "pointer" }}
+        onClick={(e) => {
+          // e.stopPropagation(); // Prevents event bubbling
+          noteclick; // Use the function passed as prop
+        }}
+      >
+        {item.description}
+      </Typography>
 
       {isHovered && (
         <Box
@@ -44,6 +58,7 @@ const NoteItem = ({ item }) => {
             marginLeft: "-10px",
             marginTop: 2,
           }}
+          onClick={(e) => e.stopPropagation()} // Prevents click propagation on the BottomBar
         >
           <BottomIconOptionsBar />
         </Box>

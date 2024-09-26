@@ -1,3 +1,4 @@
+// note/NotesSlice.jsx
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import noteService from "../../services/notesService"; // Adjust the path as needed
 

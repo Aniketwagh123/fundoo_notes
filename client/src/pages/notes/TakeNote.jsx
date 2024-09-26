@@ -1,4 +1,4 @@
-// TakeNote.jsx
+// notes/TakeNote.jsx
 import { useState, useRef, useEffect } from "react";
 import { TextField, Box, Paper, Button } from "@mui/material";
 import PushPinRoundedIcon from "@mui/icons-material/PushPinRounded";

@@ -1,4 +1,4 @@
-// BackgroundOptions.jsx
+// notes/BackgroundOptions.jsx
 import { useState } from "react";
 import {
   Avatar,

@@ -1,4 +1,4 @@
-// NoNotes.jsx
+// nootes/NoNotes.jsx
 import { Box } from "@mui/material";
 import LightbulbOutlinedIcon from "@mui/icons-material/LightbulbOutlined";
 

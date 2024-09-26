@@ -11,7 +11,7 @@ import {
   ImageList,
   ImageListItem,
 } from "@mui/material";
-import NoteItem from "../notes/NoteItem"; // Reuse the NoteItem component
+import NoteItem from "../notes/NoteItemCard"; // Reuse the NoteItem component
 import BottomIconOptionsBar from "../notes/BottomIconOptionsBar";
 import { fetchTrashedNotes } from "../notes/notesSlice";
 
