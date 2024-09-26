@@ -1,4 +1,3 @@
-// notes/Notes.jsx
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -44,9 +43,6 @@ const Notes = () => {
   }
 
   if (error) {
-    if(error === "Request failed with status code 401"){
-      //TODO: handle token expired state here
-    }
     return <div>Error: {error}</div>;
   }
 
@@ -56,16 +52,22 @@ const Notes = () => {
         width: "100%",
         paddingBlock: "30px",
         paddingInline: "10%",
-        display: "flex",
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+        gap: "16px", // Spacing between items
       }}
     >
-      <ImageList variant="masonry" cols={4} gap={16}>
-        {notesData.map((item) => (
-          <ImageListItem key={item.id} onClick={() => handleClickOpen(item)}>
-            <NoteItem item={item} />
-          </ImageListItem>
-        ))}
-      </ImageList>
+      {notesData.map((item) => (
+        <Box
+          key={item.id}
+          onClick={() => handleClickOpen(item)}
+          sx={{
+            cursor: "pointer",
+          }}
+        >
+          <NoteItem item={item} />
+        </Box>
+      ))}
 
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>{selectedNote?.title}</DialogTitle>

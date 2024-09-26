@@ -167,8 +167,8 @@ const ExpandableNote = () => {
                     addNote({
                       title: titleText,
                       description: noteText,
-                      image: selectedIcon,
-                      color: selectedColor,
+                    //   image: selectedIcon,
+                      color: selectedIcon,
                     })
                   );
                 }

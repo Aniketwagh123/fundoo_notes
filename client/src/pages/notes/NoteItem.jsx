@@ -1,4 +1,4 @@
-// src/components/NoteItem.jsx
+// NoteItem.jsx
 import { useState } from "react";
 import { alpha, Box, Card, Typography } from "@mui/material";
 import ReactMarkdown from "react-markdown";
@@ -17,14 +17,23 @@ const NoteItem = ({ item }) => {
         borderColor: alpha("#000", 0.2),
         borderRadius: "10px",
         marginBottom: 2,
-        position: "relative",
+        // position: "relative",
+        // width: "300px",
         maxWidth:"300px",
-       
+        background: `url(${item.image})`,
+
+        // backgroundPosition: "center", // Optional: center the image
+        backgroundRepeat: "no-repeat",
+        backgroundBlendMode: "overlay",
+        backgroundSize: "cover",
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Typography variant="h6">{item.title}</Typography>
+      <Typography variant="h6" style={{ lineHeight: "20px" }}>
+        {item.title}{" "}
+      </Typography>
+      <Box height={15}></Box>
       {item.description}
 
       {isHovered && (

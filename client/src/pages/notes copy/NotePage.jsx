@@ -1,4 +1,4 @@
-// notes/NotePage.jsx
+// NotePage.jsx
 import { Box } from "@mui/material";
 import NoNotes from "./NoNotes";
 import Notes from "./Notes";

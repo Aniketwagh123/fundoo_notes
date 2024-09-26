@@ -1,4 +1,4 @@
-// notes/Notes.jsx
+// trash/TrashedNotes.jsx
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -11,21 +11,21 @@ import {
   ImageList,
   ImageListItem,
 } from "@mui/material";
-import NoteItem from "./NoteItem";
-import BottomIconOptionsBar from "./BottomIconOptionsBar";
-import { fetchAllNotes } from "./notesSlice"; // Update the import to include the async thunk
+import NoteItem from "../notes/NoteItem"; // Reuse the NoteItem component
+import BottomIconOptionsBar from "../notes/BottomIconOptionsBar";
+import { fetchTrashedNotes } from "../notes/notesSlice";
 
-const Notes = () => {
+const TrashedNotes = () => {
   const dispatch = useDispatch();
-  const notesData = useSelector((state) => state.notes.notesData);
+  const trashedNotes = useSelector((state) => state.notes.trashedNotes);
   const [open, setOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState(null);
   const loading = useSelector((state) => state.notes.loading); // Loading state
   const error = useSelector((state) => state.notes.error); // Error state
 
   useEffect(() => {
-    // Dispatch the fetchAllNotes action to get notes data
-    dispatch(fetchAllNotes());
+    // Fetch trashed notes when the component mounts
+    dispatch(fetchTrashedNotes());
   }, [dispatch]);
 
   const handleClickOpen = (note) => {
@@ -38,14 +38,14 @@ const Notes = () => {
     setSelectedNote(null);
   };
 
-  // Optionally handle loading and error states
+  // Handle loading and error states
   if (loading) {
     return <div>Loading...</div>;
   }
 
   if (error) {
-    if(error === "Request failed with status code 401"){
-      //TODO: handle token expired state here
+    if (error === "Request failed with status code 401") {
+      // Handle token expired state here
     }
     return <div>Error: {error}</div>;
   }
@@ -60,7 +60,7 @@ const Notes = () => {
       }}
     >
       <ImageList variant="masonry" cols={4} gap={16}>
-        {notesData.map((item) => (
+        {trashedNotes.map((item) => (
           <ImageListItem key={item.id} onClick={() => handleClickOpen(item)}>
             <NoteItem item={item} />
           </ImageListItem>
@@ -83,4 +83,4 @@ const Notes = () => {
   );
 };
 
-export default Notes;
+export default TrashedNotes;
