@@ -20,23 +20,19 @@ const ExpandableNote = () => {
 
   const handleExpand = () => setIsExpanded(true);
   const selectedColor = useSelector((state) => state.notes.selectedColor);
-  console.log(selectedColor);
 
   const selectedIcon = useSelector((state) => state.notes.selectedIcon);
 
   const handleShrink = (e) => {
-    console.log(`${titleText},... ${noteText}`);
+    // console.log(`${titleText},... ${noteText}`);
     if (noteRef.current && !noteRef.current.contains(e.target)) {
-      // Dispatch addNote when shrinking
       console.log(`${titleText}, ${noteText}`);
       if (titleText || noteText) {
-        // why it is alwase null here
-
         dispatch(addNote({ title: titleText, description: noteText }));
       }
       setIsExpanded(false);
-      setNoteText(""); // Optionally clear note text
-      setTitleText(""); // Optionally clear title text
+      setNoteText("");
+      setTitleText("");
     }
   };
 
@@ -156,8 +152,8 @@ const ExpandableNote = () => {
               justifyContent: "space-between",
             }}
           >
-            {/* Use the new IconOptions component */}
             <BottomIconOptionsBar />
+
             <Button
               color="inhitit"
               onClick={() => {
@@ -177,7 +173,7 @@ const ExpandableNote = () => {
                 setTitleText(""); // Optionally clear title text
               }}
             >
-              Close
+              Save
             </Button>
           </Box>
         </>

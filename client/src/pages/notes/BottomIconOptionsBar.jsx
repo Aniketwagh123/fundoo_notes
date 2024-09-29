@@ -1,24 +1,69 @@
-// notes/BottomIconOptionsBar.jsx
-import { useState } from "react";
-import { Box, IconButton } from "@mui/material";
+import { useState, useEffect, useRef } from "react";
+import {
+  Box,
+  IconButton,
+  Portal
+} from "@mui/material";
 import NotificationAddOutlinedIcon from "@mui/icons-material/NotificationAddOutlined";
 import GroupAddOutlinedIcon from "@mui/icons-material/GroupAddOutlined";
 import ColorLensOutlinedIcon from "@mui/icons-material/ColorLensOutlined";
 import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
-import ArchiveOutlined from "@mui/icons-material/ArchiveOutlined";
+import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 import MoreVertOutlinedIcon from "@mui/icons-material/MoreVertOutlined";
+import { useDispatch } from "react-redux";
+import { setSelectedColor, setSelectedIcon } from "./NotesSlice";
 import BackgroundOptions from "./BackgroundOptions";
 
 const BottomIconOptionsBar = () => {
   const [open, setOpen] = useState(false);
+  const [selectedColor, setSelectedColorState] = useState(null);
+  const [selectedIcon, setSelectedIconState] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const portalRef = useRef(null);
 
-  const handleColorLensClick = () => {
+  const dispatch = useDispatch();
+
+  const handleColorLensClick = (event) => {
     setOpen(true);
+    setAnchorEl(event.currentTarget);
   };
 
   const handleClose = () => {
     setOpen(false);
+    setAnchorEl(null);
   };
+
+  const handleColorClick = (color) => {    
+    setSelectedColorState(color);
+    dispatch(setSelectedColor(color));
+  };
+
+  const handleIconClick = (icon) => {
+    console.log(`this is selected color ${icon}`);
+    setSelectedIconState(icon);
+    dispatch(setSelectedIcon(icon));
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        portalRef.current &&
+        !portalRef.current.contains(event.target) &&
+        anchorEl &&
+        !anchorEl.contains(event.target)
+      ) {
+        handleClose();
+      }
+    };
+
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [open, anchorEl]);
 
   return (
     <Box
@@ -27,60 +72,48 @@ const BottomIconOptionsBar = () => {
         justifyContent: "space-between",
         width: "250px",
         marginLeft: "-10px",
-        position: "relative", // Make the parent Box position relative
       }}
     >
       <IconButton>
-        <NotificationAddOutlinedIcon
-          sx={{ width: "20px", height: "auto", color: "black", opacity: 0.7 }}
-        />
+        <NotificationAddOutlinedIcon />
       </IconButton>
       <IconButton>
-        <GroupAddOutlinedIcon
-          sx={{ width: "20px", height: "auto", color: "black", opacity: 0.7 }}
-        />
+        <GroupAddOutlinedIcon />
       </IconButton>
       <IconButton onClick={handleColorLensClick}>
-        <ColorLensOutlinedIcon
-          sx={{ width: "20px", height: "auto", color: "black", opacity: 0.7 }}
-        />
+        <ColorLensOutlinedIcon />
       </IconButton>
       <IconButton>
-        <ImageOutlinedIcon
-          sx={{ width: "20px", height: "auto", color: "black", opacity: 0.7 }}
-        />
+        <ImageOutlinedIcon />
       </IconButton>
       <IconButton>
-        <ArchiveOutlined
-          sx={{ width: "20px", height: "auto", color: "black", opacity: 0.7 }}
-        />
+        <ArchiveOutlinedIcon />
       </IconButton>
       <IconButton>
-        <MoreVertOutlinedIcon
-          sx={{ width: "20px", height: "auto", color: "black", opacity: 0.7 }}
-        />
+        <MoreVertOutlinedIcon />
       </IconButton>
 
-      {/* Detached Box for Background Options */}
       {open && (
-        <Box
-          sx={{
-            position: "absolute",
-            top: "-60px", // Adjust this value to position the box below the Color Lens icon
-            // left: '120%',
-            transform: "translateX(16%)",
-            // backgroundColor: 'white', // Change as needed
-            // boxShadow: 3, // Optional: adds shadow for better visibility
-            borderRadius: 2, // Optional: rounds corners
-            zIndex: 1300, // Ensures it's above other content
-            // padding: 2, // Optional: adds padding inside the box
-          }}
-        >
-          <BackgroundOptions onClose={handleClose} />
-          {/* <IconButton onClick={handleClose} sx={{ position: 'absolute', top: 8, right: 8 }}>
-            Close
-          </IconButton> */}
-        </Box>
+        <Portal>
+          <Box
+            ref={portalRef}
+            sx={{
+              position: "absolute",
+              top: anchorEl ? anchorEl.getBoundingClientRect().bottom - 100 : 0,
+              left: anchorEl ? anchorEl.getBoundingClientRect().left : 0,
+              width: "500px",
+              borderRadius: 2,
+              zIndex: 1300,
+            }}
+          >
+            <BackgroundOptions
+              selectedColor={selectedColor}
+              selectedIcon={selectedIcon}
+              handleColorClick={handleColorClick}
+              handleIconClick={handleIconClick}
+            />
+          </Box>
+        </Portal>
       )}
     </Box>
   );

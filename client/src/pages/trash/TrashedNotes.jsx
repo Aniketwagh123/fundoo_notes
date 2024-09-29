@@ -73,7 +73,7 @@ const TrashedNotes = () => {
           <p>{selectedNote?.description}</p>
         </DialogContent>
         <DialogActions>
-          <BottomIconOptionsBar />
+          {/* <BottomIconOptionsBar /> */}
           <Button onClick={handleClose} color="primary">
             Close
           </Button>

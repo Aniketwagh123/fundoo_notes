@@ -9,21 +9,15 @@ export const fetchAllNotes = createAsyncThunk("notes/fetchAll", async () => {
   return response.data; // Ensure this matches your API response structure
 });
 
-export const fetchTrashedNotes = createAsyncThunk("notes/fetchTrashed", async () => {
+export const fetchTrashedNotes = createAsyncThunk(
+  "notes/fetchTrashed",
+  async () => {
     const response = await noteService.getTrashedNotes();
     console.log(response);
     return response; // Ensure this matches your API response structure
-  });
+  }
+);
 
-// export const fetchTrashedNotes = createAsyncThunk(
-//   "notes/fetchTrashed",
-//   async () => {
-//     const response = await noteService.getTrashedNotes();
-//     console.log(response);
-//     return response;
-//   }
-// );
-// Async thunk to add a new note
 export const addNewNote = createAsyncThunk(
   "notes/addNote",
   async (noteData) => {
@@ -35,6 +29,13 @@ export const addNewNote = createAsyncThunk(
   }
 );
 
+export const updateNote = createAsyncThunk(
+  "notes/updateNote",
+  async ({ id, noteData }) => {
+    const response = await noteService.updateNote(id, noteData);
+    return response; // Ensure this matches your API response structure
+  }
+);
 const notesSlice = createSlice({
   name: "notes",
   initialState: {
@@ -91,6 +92,27 @@ const notesSlice = createSlice({
         state.loading = false;
       })
       .addCase(fetchTrashedNotes.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(updateNote.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      // Handle fulfilled state for updating note
+      .addCase(updateNote.fulfilled, (state, action) => {
+        const index = state.notesData.findIndex(
+          (note) => note.id === action.payload.data.id
+        );
+        console.log(index);
+        
+        if (index !== -1) {
+          state.notesData[index] = action.payload.data; // Update the note in the array
+        }
+        state.loading = false;
+      })
+      // Handle rejected state for updating note
+      .addCase(updateNote.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       });

@@ -1,5 +1,4 @@
-// notes/BackgroundOptions.jsx
-import { useState } from "react";
+// import React from "react";
 import {
   Avatar,
   Badge,
@@ -9,11 +8,14 @@ import {
   Grid,
   Tooltip,
 } from "@mui/material";
-import CheckIcon from "@mui/icons-material/Check"; // MUI check icon for the tick
-import { useDispatch } from "react-redux";
-import { setSelectedColor, setSelectedIcon } from "./NotesSlice";
+import CheckIcon from "@mui/icons-material/Check";
 
-const BackgroundOptions = () => {
+const BackgroundOptions = ({
+  selectedColor,
+  selectedIcon,
+  handleColorClick,
+  handleIconClick,
+}) => {
   // Array of colors with names and values
   const pickColors = [
     { name: "White", value: "#ffffff" },
@@ -78,34 +80,10 @@ const BackgroundOptions = () => {
       value:
         "https://www.gstatic.com/keep/backgrounds/celebration_light_thumb_0715.svg",
     },
-    // ... more images
   ];
 
-  const [selectedColor, setSelectedColorState] = useState(null);
-  const [selectedIcon, setSelectedIconState] = useState(null); // State for selected icon
-
-  const dispatch = useDispatch(); // Initialize the useDispatch hook
-
-  // Handle color selection
-  const handleColorClick = (color) => {
-    console.log("Color clicked:", color);
-    setSelectedColorState(color);
-    dispatch(setSelectedColor(color)); // Dispatch selected color to Redux
-  };
-
-  // Handle icon selection
-  const handleIconClick = (icon) => {
-    console.log(icon);
-    
-    setSelectedIconState(icon);
-    dispatch(setSelectedIcon(icon));
-  };
-
   return (
-    <Card
-      elevation={3}
-      sx={{ marginBlock: "100px", padding: 2, borderRadius: 3 }}
-    >
+    <Card elevation={3} sx={{ padding: 2, borderRadius: 3 }}>
       {/* Color selection section */}
       <Box display="flex" gap={1}>
         {pickColors.map((colorObj, index) => (

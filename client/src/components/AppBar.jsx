@@ -217,7 +217,7 @@ export default function PrimarySearchAppBar({ setisDrowerOpen, isDrowerOpen }) {
               component="div"
               sx={{ display: { xs: "none", sm: "block" } }}
             >
-              Keep
+              FundooNotes ✍️
             </Typography>
           </Box>
           <Search>

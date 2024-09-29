@@ -1,4 +1,3 @@
-// notes/Notes.jsx
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -12,7 +11,7 @@ import {
   ImageListItem,
 } from "@mui/material";
 import BottomIconOptionsBar from "./BottomIconOptionsBar";
-import { fetchAllNotes } from "./notesSlice";
+import { fetchAllNotes, updateNote } from "./notesSlice"; // Import updateNote
 import NoteItem from "./NoteItemCard"; // Make sure the import is correct
 
 const Notes = () => {
@@ -20,6 +19,7 @@ const Notes = () => {
   const notesData = useSelector((state) => state.notes.notesData);
   const [open, setOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState(null);
+  const [editedNote, setEditedNote] = useState({ title: "", description: "" });
   const loading = useSelector((state) => state.notes.loading);
   const error = useSelector((state) => state.notes.error);
 
@@ -27,18 +27,36 @@ const Notes = () => {
     dispatch(fetchAllNotes());
   }, [dispatch]);
 
-  // The function to handle opening the dialog
+  // Handle opening the dialog
   const handleClickOpen = (note) => {
-    console.log('hii');
-    
     setSelectedNote(note);
+    setEditedNote({
+      title: note.title,
+      description: note.description,
+    });
     setOpen(true);
   };
 
-  // Function to close the dialog
+  // Handle closing the dialog
   const handleClose = () => {
     setOpen(false);
     setSelectedNote(null);
+  };
+
+  // Handle content editing for title and description
+  const handleEdit = (field, event) => {
+    setEditedNote({
+      ...editedNote,
+      [field]: event.target.textContent,
+    });
+  };
+
+  // Save the edited note
+  const handleSave = () => {
+    if (selectedNote) {
+      dispatch(updateNote({ id: selectedNote.id, noteData: editedNote }));
+      handleClose(); // Close the dialog after saving
+    }
   };
 
   if (loading) {
@@ -61,7 +79,6 @@ const Notes = () => {
       <ImageList variant="masonry" cols={4} gap={16}>
         {notesData.map((item) => (
           <ImageListItem key={item.id}>
-            {/* Pass handleClickOpen as a function to noteclick */}
             <NoteItem item={item} noteclick={() => handleClickOpen(item)} />
           </ImageListItem>
         ))}
@@ -69,16 +86,51 @@ const Notes = () => {
 
       {/* Dialog for viewing selected note details */}
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>{selectedNote?.title}</DialogTitle>
-        <DialogContent>
-          <p>{selectedNote?.description}</p>
-        </DialogContent>
-        <DialogActions>
-          <BottomIconOptionsBar />
-          <Button onClick={handleClose} color="primary">
-            Close
-          </Button>
-        </DialogActions>
+        <Box
+          sx={{
+            background: `url(${selectedNote?.image})`,
+            backgroundRepeat: "no-repeat",
+            backgroundBlendMode: "overlay",
+            backgroundSize: "cover",
+          }}
+        >
+          <DialogTitle
+            contentEditable
+            suppressContentEditableWarning
+            onBlur={(event) => handleEdit("title", event)}
+            sx={{
+              outline: "none", // Remove outline
+              border: "none",  // Remove border (if any)
+            }}
+          >
+            {editedNote.title}
+          </DialogTitle>
+          <DialogContent>
+            <p
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={(event) => handleEdit("description", event)}
+              style={{
+                outline: "none", // Remove outline
+                border: "none",  // Remove border (if any)
+              }}
+            >
+              {editedNote.description}
+            </p>
+          </DialogContent>
+          <DialogActions
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              width: "100%",
+            }}
+          >
+            <BottomIconOptionsBar />
+            <Button onClick={handleSave} color="primary">
+              Save
+            </Button>
+          </DialogActions>
+        </Box>
       </Dialog>
     </Box>
   );

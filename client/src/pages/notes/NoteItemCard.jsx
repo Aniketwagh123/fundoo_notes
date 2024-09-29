@@ -1,4 +1,4 @@
-// note/NoteItemCardxjsx
+// note/NoteItemCard.jsx
 import { useState } from "react";
 import { alpha, Box, Card, Typography } from "@mui/material";
 import BottomIconOptionsBar from "./BottomIconOptionsBar";
@@ -21,6 +21,10 @@ const NoteItem = ({ item, noteclick }) => {
         backgroundRepeat: "no-repeat",
         backgroundBlendMode: "overlay",
         backgroundSize: "cover",
+        position: "relative", // Enable positioning for the bottom bar
+        minHeight: "150px", // Adjust card height to accommodate content + icon bar
+        transition: "padding-bottom 0.3s ease", // Smooth transition on hover
+        paddingBottom: isHovered ? "50px" : "10px", // Increase space on hover
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -30,8 +34,7 @@ const NoteItem = ({ item, noteclick }) => {
         variant="h6"
         style={{ lineHeight: "20px", cursor: "pointer" }}
         onClick={(e) => {
-          // e.stopPropagation(); // Prevents event bubbling
-          noteclick; // Use the function passed as prop
+          noteclick(); // Use the function passed as prop
         }}
       >
         {item.title}
@@ -41,28 +44,35 @@ const NoteItem = ({ item, noteclick }) => {
 
       {/* Description with click handler */}
       <Typography
-        style={{ cursor: "pointer" }}
+        style={{
+          cursor: "pointer",
+          transform: isHovered ? "translateY(-10px)" : "translateY(0)", // Move text up on hover
+          transition: "transform 0.3s ease", // Smooth transition
+        }}
         onClick={(e) => {
-          // e.stopPropagation(); // Prevents event bubbling
-          noteclick; // Use the function passed as prop
+          noteclick(); // Use the function passed as prop
         }}
       >
         {item.description}
       </Typography>
 
-      {isHovered && (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-around",
-            marginLeft: "-10px",
-            marginTop: 2,
-          }}
-          onClick={(e) => e.stopPropagation()} // Prevents click propagation on the BottomBar
-        >
-          <BottomIconOptionsBar />
-        </Box>
-      )}
+      {/* Reserved space for the bottom icon bar */}
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: 1,
+          backgroundColor: alpha("#fff", 0.8),
+          display: "flex",
+          justifyContent: "space-around",
+          visibility: isHovered ? "visible" : "hidden", // Show on hover
+        }}
+        onClick={(e) => e.stopPropagation()} // Prevent click propagation on the BottomBar
+      >
+        <BottomIconOptionsBar />
+      </Box>
     </Card>
   );
 };
