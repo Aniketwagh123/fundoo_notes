@@ -20,6 +20,7 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import ViewAgendaOutlinedIcon from "@mui/icons-material/ViewAgendaOutlined";
 import GridViewOutlinedIcon from "@mui/icons-material/GridViewOutlined";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -84,6 +85,9 @@ export default function PrimarySearchAppBar({ setisDrowerOpen, isDrowerOpen }) {
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
+  const [searchInput, setSearchInput] = useState("");
+  const navigate = useNavigate();
+
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -103,6 +107,14 @@ export default function PrimarySearchAppBar({ setisDrowerOpen, isDrowerOpen }) {
 
   const toggleView = () => {
     setListView((prev) => !prev); // Toggle between list and grid view
+  };
+
+  const handleSearchChange = (event) => {
+    const newSearchValue = event.target.value; // Get the new search input value
+
+    setSearchInput(newSearchValue); // Update search input state
+    console.log(newSearchValue); // Print to console or handle as needed
+    navigate(`?search=${encodeURIComponent(newSearchValue)}`);
   };
 
   const menuId = "primary-search-account-menu";
@@ -227,6 +239,8 @@ export default function PrimarySearchAppBar({ setisDrowerOpen, isDrowerOpen }) {
             <StyledInputBase
               placeholder="Search…"
               inputProps={{ "aria-label": "search" }}
+              value={searchInput}
+              onChange={handleSearchChange}
             />
           </Search>
           <Box sx={{ flexGrow: 1 }} />
@@ -296,7 +310,4 @@ export default function PrimarySearchAppBar({ setisDrowerOpen, isDrowerOpen }) {
       {renderMenu}
     </Box>
   );
-  
 }
-
-

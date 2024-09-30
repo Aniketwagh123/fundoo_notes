@@ -13,6 +13,7 @@ import {
 import BottomIconOptionsBar from "./BottomIconOptionsBar";
 import { fetchAllNotes, updateNote } from "./notesSlice"; // Import updateNote
 import NoteItem from "./NoteItemCard"; // Make sure the import is correct
+import { useSearchParams } from "react-router-dom";
 
 const Notes = () => {
   const dispatch = useDispatch();
@@ -22,6 +23,10 @@ const Notes = () => {
   const [editedNote, setEditedNote] = useState({ title: "", description: "" });
   const loading = useSelector((state) => state.notes.loading);
   const error = useSelector((state) => state.notes.error);
+
+  // For search functionality
+  const [searchParams] = useSearchParams(); // Get search parameters
+  const query = searchParams.get("search") || ""; // Extract the search query
 
   useEffect(() => {
     dispatch(fetchAllNotes());
@@ -59,6 +64,11 @@ const Notes = () => {
     }
   };
 
+  // Filter notes based on the search query
+  const filteredNotes = notesData.filter((note) =>
+    (note.title.toLowerCase()+note.description.toLowerCase()).includes(query.toLowerCase())
+  );
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -77,7 +87,7 @@ const Notes = () => {
       }}
     >
       <ImageList variant="masonry" cols={4} gap={16}>
-        {notesData.map((item) => (
+        {filteredNotes.map((item) => (
           <ImageListItem key={item.id}>
             <NoteItem item={item} noteclick={() => handleClickOpen(item)} />
           </ImageListItem>
