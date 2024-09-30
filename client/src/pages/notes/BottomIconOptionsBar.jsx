@@ -1,9 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  Box,
-  IconButton,
-  Portal
-} from "@mui/material";
+import { Box, IconButton, Portal, Tooltip } from "@mui/material";
 import NotificationAddOutlinedIcon from "@mui/icons-material/NotificationAddOutlined";
 import GroupAddOutlinedIcon from "@mui/icons-material/GroupAddOutlined";
 import ColorLensOutlinedIcon from "@mui/icons-material/ColorLensOutlined";
@@ -33,7 +29,7 @@ const BottomIconOptionsBar = () => {
     setAnchorEl(null);
   };
 
-  const handleColorClick = (color) => {    
+  const handleColorClick = (color) => {
     setSelectedColorState(color);
     dispatch(setSelectedColor(color));
   };
@@ -74,24 +70,36 @@ const BottomIconOptionsBar = () => {
         marginLeft: "-10px",
       }}
     >
-      <IconButton>
-        <NotificationAddOutlinedIcon />
-      </IconButton>
-      <IconButton>
-        <GroupAddOutlinedIcon />
-      </IconButton>
-      <IconButton onClick={handleColorLensClick}>
-        <ColorLensOutlinedIcon />
-      </IconButton>
-      <IconButton>
-        <ImageOutlinedIcon />
-      </IconButton>
-      <IconButton>
-        <ArchiveOutlinedIcon />
-      </IconButton>
-      <IconButton>
-        <MoreVertOutlinedIcon />
-      </IconButton>
+      <Tooltip title="Add Reminder">
+        <IconButton>
+          <NotificationAddOutlinedIcon />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="Collaborate">
+        <IconButton>
+          <GroupAddOutlinedIcon />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="Change Color">
+        <IconButton onClick={handleColorLensClick}>
+          <ColorLensOutlinedIcon />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="Add Image">
+        <IconButton>
+          <ImageOutlinedIcon />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="Archive">
+        <IconButton>
+          <ArchiveOutlinedIcon />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="More Options">
+        <IconButton>
+          <MoreVertOutlinedIcon />
+        </IconButton>
+      </Tooltip>
 
       {open && (
         <Portal>
@@ -99,7 +107,7 @@ const BottomIconOptionsBar = () => {
             ref={portalRef}
             sx={{
               position: "absolute",
-              top: anchorEl ? anchorEl.getBoundingClientRect().bottom - 100 : 0,
+              top: anchorEl ? anchorEl.getBoundingClientRect().bottom : 0,
               left: anchorEl ? anchorEl.getBoundingClientRect().left : 0,
               width: "500px",
               borderRadius: 2,

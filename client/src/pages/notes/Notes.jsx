@@ -11,7 +11,7 @@ import {
   ImageListItem,
 } from "@mui/material";
 import BottomIconOptionsBar from "./BottomIconOptionsBar";
-import { fetchAllNotes, updateNote } from "./notesSlice"; // Import updateNote
+import { fetchAllNotes, updateNote, setSelectedIcon } from "./notesSlice"; // Import updateNote
 import NoteItem from "./NoteItemCard"; // Make sure the import is correct
 import { useSearchParams } from "react-router-dom";
 
@@ -27,6 +27,7 @@ const Notes = () => {
   // For search functionality
   const [searchParams] = useSearchParams(); // Get search parameters
   const query = searchParams.get("search") || ""; // Extract the search query
+  const selectedIcon = useSelector((state) => state.notes.selectedIcon);
 
   useEffect(() => {
     dispatch(fetchAllNotes());
@@ -35,9 +36,11 @@ const Notes = () => {
   // Handle opening the dialog
   const handleClickOpen = (note) => {
     setSelectedNote(note);
+    dispatch(setSelectedIcon(note.image));
     setEditedNote({
       title: note.title,
       description: note.description,
+      image: selectedIcon,
     });
     setOpen(true);
   };
@@ -59,6 +62,9 @@ const Notes = () => {
   // Save the edited note
   const handleSave = () => {
     if (selectedNote) {
+      editedNote.image = selectedIcon;
+      console.log(editedNote);
+      
       dispatch(updateNote({ id: selectedNote.id, noteData: editedNote }));
       handleClose(); // Close the dialog after saving
     }
@@ -66,7 +72,9 @@ const Notes = () => {
 
   // Filter notes based on the search query
   const filteredNotes = notesData.filter((note) =>
-    (note.title.toLowerCase()+note.description.toLowerCase()).includes(query.toLowerCase())
+    (note.title.toLowerCase() + note.description.toLowerCase()).includes(
+      query.toLowerCase()
+    )
   );
 
   if (loading) {
@@ -98,7 +106,7 @@ const Notes = () => {
       <Dialog open={open} onClose={handleClose}>
         <Box
           sx={{
-            background: `url(${selectedNote?.image})`,
+            background: `url(${selectedIcon})`,
             backgroundRepeat: "no-repeat",
             backgroundBlendMode: "overlay",
             backgroundSize: "cover",
@@ -110,7 +118,7 @@ const Notes = () => {
             onBlur={(event) => handleEdit("title", event)}
             sx={{
               outline: "none", // Remove outline
-              border: "none",  // Remove border (if any)
+              border: "none", // Remove border (if any)
             }}
           >
             {editedNote.title}
@@ -122,7 +130,7 @@ const Notes = () => {
               onBlur={(event) => handleEdit("description", event)}
               style={{
                 outline: "none", // Remove outline
-                border: "none",  // Remove border (if any)
+                border: "none", // Remove border (if any)
               }}
             >
               {editedNote.description}
