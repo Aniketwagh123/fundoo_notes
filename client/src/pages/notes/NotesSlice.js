@@ -6,7 +6,6 @@ import { act } from "react";
 // Async thunk to fetch all notes
 export const fetchAllNotes = createAsyncThunk("notes/fetchAll", async () => {
   const response = await noteService.getNotes();
-  //   console.log(response);
   return response.data; // Ensure this matches your API response structure
 });
 
@@ -14,7 +13,6 @@ export const fetchTrashedNotes = createAsyncThunk(
   "notes/fetchTrashed",
   async () => {
     const response = await noteService.getTrashedNotes();
-    console.log(response);
     return response; // Ensure this matches your API response structure
   }
 );
@@ -23,7 +21,6 @@ export const fetchArchivedNotes = createAsyncThunk(
   "notes/fetchArchived",
   async () => {
     const response = await noteService.getArchivedNotes();
-    console.log(response);
     return response; // Ensure this matches your API response structure
   }
 );
@@ -31,9 +28,6 @@ export const fetchArchivedNotes = createAsyncThunk(
 export const addNewNote = createAsyncThunk(
   "notes/addNote",
   async (noteData) => {
-    console.log("noteData");
-    console.log(noteData);
-
     const response = await noteService.createNote(noteData);
     return response; // Ensure this matches your API response structure
   }
@@ -54,13 +48,15 @@ export const toggleTrash = createAsyncThunk("notes/toggleTrash", async (id) => {
 export const toggleArchive = createAsyncThunk(
   "notes/toggleArchive",
   async (id) => {
-    console.log(`hiiiiiiii ${id}`);
-
     const response = await noteService.toggleArchive(id);
-    
     return response; // Ensure this matches your API response structure
   }
 );
+
+export const deleteNote = createAsyncThunk("notes/deleteNote", async (id) => {
+  const response = await noteService.deleteNote(id);
+  return { id }; // Ensure this matches your API response structure
+});
 
 const notesSlice = createSlice({
   name: "notes",
@@ -100,7 +96,6 @@ const notesSlice = createSlice({
         state.error = null;
       })
       .addCase(addNewNote.fulfilled, (state, action) => {
-        // console.log(action.payload);
         state.notesData.push(action.payload.data); // Add new note
         state.loading = false;
       })
@@ -146,7 +141,6 @@ const notesSlice = createSlice({
         const index = state.notesData.findIndex(
           (note) => note.id === action.payload.data.id
         );
-        console.log(index);
 
         if (index !== -1) {
           state.notesData[index] = action.payload.data; // Update the note in the array
@@ -231,6 +225,31 @@ const notesSlice = createSlice({
       })
 
       .addCase(toggleArchive.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+
+      // Handle the toggleArchive action
+      .addCase(deleteNote.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteNote.fulfilled, (state, action) => {
+        const noteId = action.payload.id;
+
+        // Remove from all lists: notesData, trashedNotes, and archivedNotes
+        state.notesData = state.notesData.filter((note) => note.id !== noteId);
+        state.trashedNotes = state.trashedNotes.filter(
+          (note) => note.id !== noteId
+        );
+        state.archivedNotes = state.archivedNotes.filter(
+          (note) => note.id !== noteId
+        );
+
+        state.loading = false;
+      })
+
+      .addCase(deleteNote.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       });

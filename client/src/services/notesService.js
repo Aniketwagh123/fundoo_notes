@@ -62,6 +62,8 @@ const toggleTrash = async (id) => {
 // Delete a note
 const deleteNote = async (id) => {
   const response = await axiosInstance.delete(`${id}/`);
+  console.log(`aaqq ${JSON.stringify(response)}`);
+  
   return response.data;
 };
 
