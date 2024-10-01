@@ -6,7 +6,7 @@ class Note(models.Model):
     title = models.CharField(max_length=255, null=False, blank=False, db_index=True)
     description = models.TextField(null=True, blank=True)
     color = models.CharField(max_length=20, null=True, blank=True)
-    image = models.ImageField(upload_to='notes/images/', null=True, blank=True)
+    image = models.URLField(null=True, blank=True)
     is_archive = models.BooleanField(default=False, db_index=True)
     is_trash = models.BooleanField(default=False, db_index=True)
     reminder = models.DateTimeField(null=True, blank=True)

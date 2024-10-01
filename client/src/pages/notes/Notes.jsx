@@ -10,9 +10,9 @@ import {
   ImageList,
   ImageListItem,
 } from "@mui/material";
-import BottomIconOptionsBar from "./BottomIconOptionsBar";
+import BottomIconOptionsBar from "../../components/BottomIconOptionsBar";
 import { fetchAllNotes, updateNote, setSelectedIcon } from "./notesSlice"; // Import updateNote
-import NoteItem from "./NoteItemCard"; // Make sure the import is correct
+import NoteItem from "../../components/NoteItemCard"; // Make sure the import is correct
 import { useSearchParams } from "react-router-dom";
 
 const Notes = () => {

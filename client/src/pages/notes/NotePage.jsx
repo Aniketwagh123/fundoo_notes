@@ -1,6 +1,6 @@
 // notes/NotePage.jsx
 import { Box } from "@mui/material";
-import NoNotes from "./NoNotes";
+import NoNotes from "../../components/NoNotes";
 import Notes from "./Notes";
 import ExpandableNote from "./TakeNote";
 // import BackgroundOptions from "./BackgroundOptions";
@@ -21,10 +21,10 @@ const NotePage = () => {
       }}
     >
       <ExpandableNote />
-      {(selectedColor<=0) && <NoNotes />} {/* Conditional rendering for NoNotes */}
+      {selectedColor <= 0 && <NoNotes />}{" "}
+      {/* Conditional rendering for NoNotes */}
       {/* <BackgroundOptions/> */}
       <Notes />
-      
     </Box>
   );
 };

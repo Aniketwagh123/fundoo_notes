@@ -1,6 +1,7 @@
 // note/NotesSlice.jsx
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import noteService from "../../services/notesService"; // Adjust the path as needed
+import { act } from "react";
 
 // Async thunk to fetch all notes
 export const fetchAllNotes = createAsyncThunk("notes/fetchAll", async () => {
@@ -13,6 +14,15 @@ export const fetchTrashedNotes = createAsyncThunk(
   "notes/fetchTrashed",
   async () => {
     const response = await noteService.getTrashedNotes();
+    console.log(response);
+    return response; // Ensure this matches your API response structure
+  }
+);
+
+export const fetchArchivedNotes = createAsyncThunk(
+  "notes/fetchArchived",
+  async () => {
+    const response = await noteService.getArchivedNotes();
     console.log(response);
     return response; // Ensure this matches your API response structure
   }
@@ -41,11 +51,23 @@ export const toggleTrash = createAsyncThunk("notes/toggleTrash", async (id) => {
   return response; // Ensure this matches your API response structure
 });
 
+export const toggleArchive = createAsyncThunk(
+  "notes/toggleArchive",
+  async (id) => {
+    console.log(`hiiiiiiii ${id}`);
+
+    const response = await noteService.toggleArchive(id);
+    
+    return response; // Ensure this matches your API response structure
+  }
+);
+
 const notesSlice = createSlice({
   name: "notes",
   initialState: {
     notesData: [],
     trashedNotes: [],
+    archivedNotes: [],
     selectedColor: null,
     selectedIcon: null,
     loading: false,
@@ -86,13 +108,13 @@ const notesSlice = createSlice({
         state.loading = false;
         state.error = action.error.message;
       })
+
       .addCase(fetchTrashedNotes.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchTrashedNotes.fulfilled, (state, action) => {
         state.trashedNotes = action.payload;
-        console.log(`????///${action.payload}`);
 
         state.loading = false;
       })
@@ -100,6 +122,21 @@ const notesSlice = createSlice({
         state.loading = false;
         state.error = action.error.message;
       })
+
+      .addCase(fetchArchivedNotes.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchArchivedNotes.fulfilled, (state, action) => {
+        state.archivedNotes = action.payload;
+
+        state.loading = false;
+      })
+      .addCase(fetchArchivedNotes.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+
       .addCase(updateNote.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -123,25 +160,77 @@ const notesSlice = createSlice({
       })
 
       // Handle the toggleTrash action
+      .addCase(toggleTrash.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(toggleTrash.fulfilled, (state, action) => {
         const noteId = action.payload.id;
-        const noteToTrashIndex = state.notesData.findIndex(
-          (note) => note.id === noteId
-        );
-        // console.log(noteToTrashIndex);
-        if (noteToTrashIndex >= 0) {
-          const trashedNote = state.notesData[noteToTrashIndex];
-          // Instead of mutating directly, create a new array reference
-          const temp = state.notesData.filter((note) => note.id !== noteId);
+        const isTrash = action.payload.is_trash;
+        const isArchive = action.payload.is_archive;
 
-          state.notesData = temp;
-          // Push the trashed note into trashedNotes
-          state.trashedNotes = [...state.trashedNotes, trashedNote]; // Create a new array reference
+        // Remove from current location
+        state.notesData = state.notesData.filter((note) => note.id !== noteId);
+        state.trashedNotes = state.trashedNotes.filter(
+          (note) => note.id !== noteId
+        );
+        state.archivedNotes = state.archivedNotes.filter(
+          (note) => note.id !== noteId
+        );
+
+        if (isTrash) {
+          // Add to trashedNotes if it's trashed
+          state.trashedNotes.push(action.payload);
+        } else if (isArchive) {
+          // Add to archivedNotes if it's archived
+          state.archivedNotes.push(action.payload);
+        } else {
+          // Otherwise, add it back to notesData
+          state.notesData.push(action.payload);
         }
+
         state.loading = false;
       })
 
       .addCase(toggleTrash.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+
+      // Handle the toggleArchive action
+      .addCase(toggleArchive.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(toggleArchive.fulfilled, (state, action) => {
+        const noteId = action.payload.id;
+        const isTrash = action.payload.is_trash;
+        const isArchive = action.payload.is_archive;
+
+        // Remove from current location
+        state.notesData = state.notesData.filter((note) => note.id !== noteId);
+        state.trashedNotes = state.trashedNotes.filter(
+          (note) => note.id !== noteId
+        );
+        state.archivedNotes = state.archivedNotes.filter(
+          (note) => note.id !== noteId
+        );
+
+        if (isTrash) {
+          // Add to trashedNotes if it's trashed
+          state.trashedNotes.push(action.payload);
+        } else if (isArchive) {
+          // Add to archivedNotes if it's archived
+          state.archivedNotes.push(action.payload);
+        } else {
+          // Otherwise, add it back to notesData
+          state.notesData.push(action.payload);
+        }
+
+        state.loading = false;
+      })
+
+      .addCase(toggleArchive.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       });

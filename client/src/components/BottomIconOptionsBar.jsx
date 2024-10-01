@@ -13,8 +13,14 @@ import ColorLensOutlinedIcon from "@mui/icons-material/ColorLensOutlined";
 import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
 import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 import MoreVertOutlinedIcon from "@mui/icons-material/MoreVertOutlined";
+import UnarchiveRoundedIcon from "@mui/icons-material/UnarchiveRounded";
 import { useDispatch } from "react-redux";
-import { setSelectedColor, setSelectedIcon, toggleTrash } from "./NotesSlice";
+import {
+  setSelectedColor,
+  setSelectedIcon,
+  toggleTrash,
+  toggleArchive,
+} from "../pages/notes/NotesSlice";
 import BackgroundOptions from "./BackgroundOptions";
 
 const BottomIconOptionsBar = (props) => {
@@ -61,6 +67,11 @@ const BottomIconOptionsBar = (props) => {
     dispatch(toggleTrash(props.noteId));
     handleMoreOptionsClose();
     // Dispatch an action to delete the note or perform the delete functionality here.
+  };
+
+  const handleToggleArchiveNote = () => {
+    // console.log(`Delete Note with id: ${props.noteId}`);
+    dispatch(toggleArchive(props.noteId));
   };
 
   useEffect(() => {
@@ -113,11 +124,21 @@ const BottomIconOptionsBar = (props) => {
           <ImageOutlinedIcon />
         </IconButton>
       </Tooltip>
-      <Tooltip title="Archive">
-        <IconButton>
-          <ArchiveOutlinedIcon />
-        </IconButton>
-      </Tooltip>
+
+      {props.archive ? (
+        <Tooltip title="Unarhive">
+          <IconButton onClick={handleToggleArchiveNote}>
+            <UnarchiveRoundedIcon />
+          </IconButton>
+        </Tooltip>
+      ) : (
+        <Tooltip title="Archive">
+          <IconButton onClick={handleToggleArchiveNote}>
+            <ArchiveOutlinedIcon />
+          </IconButton>
+        </Tooltip>
+      )}
+
       <Tooltip title="More Options">
         <IconButton onClick={handleMoreOptionsClick}>
           <MoreVertOutlinedIcon />

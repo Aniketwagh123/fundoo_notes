@@ -6,7 +6,7 @@ import PushPinOutlined from "@mui/icons-material/PushPinOutlined";
 import CheckBoxOutlinedIcon from "@mui/icons-material/CheckBoxOutlined";
 import BrushOutlinedIcon from "@mui/icons-material/BrushOutlined";
 import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
-import BottomIconOptionsBar from "./BottomIconOptionsBar";
+import BottomIconOptionsBar from "../../components/BottomIconOptionsBar";
 import { useDispatch, useSelector } from "react-redux";
 import { addNewNote as addNote } from "./NotesSlice"; // Adjust the path as necessary
 

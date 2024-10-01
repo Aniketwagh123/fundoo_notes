@@ -1,6 +1,6 @@
 // trash/TrashPage.jsx
 import { Box } from "@mui/material";
-import NoNotes from "../notes/NoNotes";
+import NoNotes from "../../components/NoNotes";
 import TrashedNotes from "./TrashedNotes";
 import { useSelector } from "react-redux";
 import { useEffect } from "react";
@@ -9,7 +9,9 @@ import { fetchTrashedNotes } from "../notes/notesSlice";
 
 const TrashPage = () => {
   const dispatch = useDispatch();
-  const trashedNotesLength = useSelector((state) => state.notes.trashedNotes.length);
+  const trashedNotesLength = useSelector(
+    (state) => state.notes.trashedNotes.length
+  );
 
   useEffect(() => {
     // Fetch trashed notes when the page loads

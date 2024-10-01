@@ -336,13 +336,16 @@ class NoteViewSet(viewsets.ViewSet):
         return: Response: Updated note data or error message.
         """
         try:
-            note = Note.objects.get(
-                Q(pk=pk) & (Q(user=request.user) | Q(collaborator__user=request.user))
-            )
+            note = Note.objects.get(Q(pk=pk) & (Q(user=request.user) | Q(collaborator__user=request.user)))
+
             note.is_archive = not note.is_archive
             note.save()
-            self.redis.delete(f"user_{request.user.id}")
-            serializer = NoteSerializer(note, raise_exception=True)
+            try:
+                self.redis.delete(f"user_{request.user.id}")
+            except Exception as redis_error:
+                logger.error(f"Redis error: {redis_error}")
+            serializer = NoteSerializer(note)
+            
             return Response(serializer.data)
         except ObjectDoesNotExist:
             return Response(

@@ -1,11 +1,11 @@
-// trash/TrashedNotes.jsx
+// trash/archivedNotes.jsx
 import { useSelector } from "react-redux";
 import { Box, ImageList, ImageListItem } from "@mui/material";
 import NoteItem from "../../components/NoteItemCard"; // Reuse the NoteItem component
 
-const TrashedNotes = () => {
+const ArchivedNotes = () => {
   // const dispatch = useDispatch();
-  const trashedNotes = useSelector((state) => state.notes.trashedNotes);
+  const archivedNotes = useSelector((state) => state.notes.archivedNotes);
   const loading = useSelector((state) => state.notes.loading); // Loading state
   const error = useSelector((state) => state.notes.error); // Error state
 
@@ -31,7 +31,7 @@ const TrashedNotes = () => {
       }}
     >
       <ImageList variant="masonry" cols={4} gap={16}>
-        {trashedNotes.map((item) => (
+        {archivedNotes.map((item) => (
           <ImageListItem key={item.id}>
             <NoteItem item={item} />
           </ImageListItem>
@@ -41,4 +41,4 @@ const TrashedNotes = () => {
   );
 };
 
-export default TrashedNotes;
+export default ArchivedNotes;

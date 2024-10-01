@@ -1,7 +1,9 @@
 // note/NoteItemCard.jsx
 import { useState } from "react";
 import { alpha, Box, Card, Typography } from "@mui/material";
+// import { useLocation } from "react-router-dom"; // Import useLocation from react-router-dom
 import BottomIconOptionsBar from "./BottomIconOptionsBar";
+import TrashBottomIconOptionsBar from "./trashBottomIconOptionsBar";
 
 const NoteItem = ({ item, noteclick }) => {
   const [isHovered, setIsHovered] = useState(false); // State to track hover status
@@ -71,7 +73,13 @@ const NoteItem = ({ item, noteclick }) => {
         }}
         onClick={(e) => e.stopPropagation()} // Prevent click propagation on the BottomBar
       >
-        <BottomIconOptionsBar noteId = {item.id}/>
+        {location.pathname.includes("trash") ? (
+          <TrashBottomIconOptionsBar noteId={item.id} />
+        ) : location.pathname.includes("archive") ? (
+          <BottomIconOptionsBar noteId={item.id} archive={true} />
+        ) : (
+          <BottomIconOptionsBar noteId={item.id} />
+        )}
       </Box>
     </Card>
   );
