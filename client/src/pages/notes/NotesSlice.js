@@ -36,6 +36,11 @@ export const updateNote = createAsyncThunk(
     return response; // Ensure this matches your API response structure
   }
 );
+export const toggleTrash = createAsyncThunk("notes/toggleTrash", async (id) => {
+  const response = await noteService.toggleTrash(id);
+  return response; // Ensure this matches your API response structure
+});
+
 const notesSlice = createSlice({
   name: "notes",
   initialState: {
@@ -105,7 +110,7 @@ const notesSlice = createSlice({
           (note) => note.id === action.payload.data.id
         );
         console.log(index);
-        
+
         if (index !== -1) {
           state.notesData[index] = action.payload.data; // Update the note in the array
         }
@@ -113,6 +118,30 @@ const notesSlice = createSlice({
       })
       // Handle rejected state for updating note
       .addCase(updateNote.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+
+      // Handle the toggleTrash action
+      .addCase(toggleTrash.fulfilled, (state, action) => {
+        const noteId = action.payload.id;
+        const noteToTrashIndex = state.notesData.findIndex(
+          (note) => note.id === noteId
+        );
+        // console.log(noteToTrashIndex);
+        if (noteToTrashIndex >= 0) {
+          const trashedNote = state.notesData[noteToTrashIndex];
+          // Instead of mutating directly, create a new array reference
+          const temp = state.notesData.filter((note) => note.id !== noteId);
+
+          state.notesData = temp;
+          // Push the trashed note into trashedNotes
+          state.trashedNotes = [...state.trashedNotes, trashedNote]; // Create a new array reference
+        }
+        state.loading = false;
+      })
+
+      .addCase(toggleTrash.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       });

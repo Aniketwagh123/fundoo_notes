@@ -40,7 +40,6 @@ const Notes = () => {
     setEditedNote({
       title: note.title,
       description: note.description,
-      image: selectedIcon,
     });
     setOpen(true);
   };
@@ -64,7 +63,7 @@ const Notes = () => {
     if (selectedNote) {
       editedNote.image = selectedIcon;
       console.log(editedNote);
-      
+
       dispatch(updateNote({ id: selectedNote.id, noteData: editedNote }));
       handleClose(); // Close the dialog after saving
     }
@@ -143,7 +142,7 @@ const Notes = () => {
               width: "100%",
             }}
           >
-            <BottomIconOptionsBar />
+            <BottomIconOptionsBar noteId={selectedNote?.id} />
             <Button onClick={handleSave} color="primary">
               Save
             </Button>

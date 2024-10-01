@@ -71,7 +71,7 @@ const NoteItem = ({ item, noteclick }) => {
         }}
         onClick={(e) => e.stopPropagation()} // Prevent click propagation on the BottomBar
       >
-        <BottomIconOptionsBar />
+        <BottomIconOptionsBar noteId = {item.id}/>
       </Box>
     </Card>
   );
