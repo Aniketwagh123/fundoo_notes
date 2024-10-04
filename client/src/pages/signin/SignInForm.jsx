@@ -14,7 +14,6 @@ const SignInForm = ({
   onPasswordChange,
   onSubmit,
 }) => {
-  console.log(error);
   const navigate = useNavigate();
 
   const emailError =
