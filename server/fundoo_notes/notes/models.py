@@ -3,7 +3,7 @@ from django.conf import settings
 from label.models import Label
 
 class Note(models.Model):
-    title = models.CharField(max_length=255, null=False, blank=False, db_index=True)
+    title = models.CharField(max_length=255, null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)
     color = models.CharField(max_length=20, null=True, blank=True)
     image = models.URLField(null=True, blank=True)

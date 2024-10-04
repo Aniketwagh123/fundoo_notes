@@ -22,9 +22,11 @@ import {
   toggleArchive,
 } from "../pages/notes/NotesSlice";
 import BackgroundOptions from "./BackgroundOptions";
+import ReminderInput from "./ReminderInput"; // Assuming ReminderInput is in the same folder
 
 const BottomIconOptionsBar = (props) => {
   const [open, setOpen] = useState(false);
+  const [reminderOpen, setReminderOpen] = useState(false); // New state for reminder
   const [selectedColor, setSelectedColorState] = useState(null);
   const [selectedIcon, setSelectedIconState] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -38,6 +40,15 @@ const BottomIconOptionsBar = (props) => {
     setAnchorEl(event.currentTarget);
   };
 
+  const handleReminderClick = (event) => {
+    setReminderOpen(true);
+    setAnchorEl(event.currentTarget); // Set the anchor element for positioning
+  };
+
+  const handleReminderClose = () => {
+    setReminderOpen(false);
+  };
+
   const handleClose = () => {
     setOpen(false);
     setAnchorEl(null);
@@ -49,7 +60,6 @@ const BottomIconOptionsBar = (props) => {
   };
 
   const handleIconClick = (icon) => {
-    console.log(`this is selected color ${icon}`);
     setSelectedIconState(icon);
     dispatch(setSelectedIcon(icon));
   };
@@ -66,11 +76,9 @@ const BottomIconOptionsBar = (props) => {
     console.log(`Delete Note with id: ${props.noteId}`);
     dispatch(toggleTrash(props.noteId));
     handleMoreOptionsClose();
-    // Dispatch an action to delete the note or perform the delete functionality here.
   };
 
   const handleToggleArchiveNote = () => {
-    // console.log(`Delete Note with id: ${props.noteId}`);
     dispatch(toggleArchive(props.noteId));
   };
 
@@ -83,17 +91,18 @@ const BottomIconOptionsBar = (props) => {
         !anchorEl.contains(event.target)
       ) {
         handleClose();
+        handleReminderClose(); // Close reminder if clicked outside
       }
     };
 
-    if (open) {
+    if (open || reminderOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [open, anchorEl]);
+  }, [open, reminderOpen, anchorEl]);
 
   return (
     <Box
@@ -105,7 +114,7 @@ const BottomIconOptionsBar = (props) => {
       }}
     >
       <Tooltip title="Add Reminder">
-        <IconButton>
+        <IconButton onClick={handleReminderClick}>
           <NotificationAddOutlinedIcon />
         </IconButton>
       </Tooltip>
@@ -126,7 +135,7 @@ const BottomIconOptionsBar = (props) => {
       </Tooltip>
 
       {props.archive ? (
-        <Tooltip title="Unarhive">
+        <Tooltip title="Unarchive">
           <IconButton onClick={handleToggleArchiveNote}>
             <UnarchiveRoundedIcon />
           </IconButton>
@@ -152,9 +161,9 @@ const BottomIconOptionsBar = (props) => {
         onClose={handleMoreOptionsClose}
       >
         <MenuItem onClick={handleDeleteNote}>Delete Note</MenuItem>
-        {/* Add more options here if needed */}
       </Menu>
 
+      {/* Color Options Portal */}
       {open && (
         <Portal>
           <Box
@@ -173,6 +182,28 @@ const BottomIconOptionsBar = (props) => {
               selectedIcon={selectedIcon}
               handleColorClick={handleColorClick}
               handleIconClick={handleIconClick}
+            />
+          </Box>
+        </Portal>
+      )}
+
+      {/* Reminder Input Portal */}
+      {reminderOpen && (
+        <Portal>
+          <Box
+            ref={portalRef}
+            sx={{
+              position: "absolute",
+              top: anchorEl ? anchorEl.getBoundingClientRect().bottom : 0,
+              left: anchorEl ? anchorEl.getBoundingClientRect().left : 0,
+              width: "300px",
+              borderRadius: 2,
+              zIndex: 1300,
+            }}
+          >
+            <ReminderInput
+              onClose={handleReminderClose}
+              noteId={props.noteId}
             />
           </Box>
         </Portal>

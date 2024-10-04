@@ -1,9 +1,10 @@
 // note/NoteItemCard.jsx
 import { useState } from "react";
-import { alpha, Box, Card, Typography } from "@mui/material";
+import { alpha, Box, Card, Chip, Typography } from "@mui/material";
 // import { useLocation } from "react-router-dom"; // Import useLocation from react-router-dom
 import BottomIconOptionsBar from "./BottomIconOptionsBar";
 import TrashBottomIconOptionsBar from "./trashBottomIconOptionsBar";
+import AccessTimeIcon from "@mui/icons-material/AccessTime"; // Import AccessTimeIcon for the timer
 
 const NoteItem = ({ item, noteclick }) => {
   const [isHovered, setIsHovered] = useState(false); // State to track hover status
@@ -26,7 +27,7 @@ const NoteItem = ({ item, noteclick }) => {
         position: "relative", // Enable positioning for the bottom bar
         minHeight: "150px", // Adjust card height to accommodate content + icon bar
         transition: "padding-bottom 0.3s ease", // Smooth transition on hover
-        paddingBottom: isHovered ? "50px" : "10px", // Increase space on hover
+        paddingBottom: isHovered ? "50px" : "50px", // Increase space on hover
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -57,6 +58,14 @@ const NoteItem = ({ item, noteclick }) => {
       >
         {item.description}
       </Typography>
+
+      {item.reminder && (
+        <Chip
+          icon={<AccessTimeIcon />} // Timer icon
+          label={new Date(item.reminder).toLocaleString()} // Display the reminder time
+          sx={{ marginTop: 1 }}
+        />
+      )}
 
       {/* Reserved space for the bottom icon bar */}
       <Box
