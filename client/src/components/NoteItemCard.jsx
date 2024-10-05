@@ -1,13 +1,15 @@
-// note/NoteItemCard.jsx
 import { useState } from "react";
 import { alpha, Box, Card, Chip, Typography } from "@mui/material";
-// import { useLocation } from "react-router-dom"; // Import useLocation from react-router-dom
 import BottomIconOptionsBar from "./BottomIconOptionsBar";
-import TrashBottomIconOptionsBar from "./trashBottomIconOptionsBar";
+import TrashBottomIconOptionsBar from "./TrashBottomIconOptionsBar";
 import AccessTimeIcon from "@mui/icons-material/AccessTime"; // Import AccessTimeIcon for the timer
+import { useSelector } from "react-redux";
 
 const NoteItem = ({ item, noteclick }) => {
   const [isHovered, setIsHovered] = useState(false); // State to track hover status
+  const labelsData = useSelector((state) => state.notes.labels)?.filter((labelD) =>
+    item.labels.includes(labelD.id)
+  ); // Filter to get labels associated with the note
 
   return (
     <Card
@@ -67,6 +69,18 @@ const NoteItem = ({ item, noteclick }) => {
         />
       )}
 
+      {/* Render chips for labels */}
+      <Box sx={{ display: "flex", flexWrap: "wrap", marginTop: 1 }}>
+        {labelsData?.map((label) => (
+          <Chip
+            key={label.id} // Use the label id as key
+            label={label.name} // Display the actual label name
+            sx={{ marginRight: 0.5, marginBottom: 0.5 }} // Space between chips
+            style={{ backgroundColor: label.color }} // Apply the label color
+          />
+        ))}
+      </Box>
+
       {/* Reserved space for the bottom icon bar */}
       <Box
         sx={{
@@ -87,7 +101,7 @@ const NoteItem = ({ item, noteclick }) => {
         ) : location.pathname.includes("archive") ? (
           <BottomIconOptionsBar noteId={item.id} archive={true} />
         ) : (
-          <BottomIconOptionsBar noteId={item.id} />
+          <BottomIconOptionsBar noteId={item.id} pLabels={item.labels} />
         )}
       </Box>
     </Card>

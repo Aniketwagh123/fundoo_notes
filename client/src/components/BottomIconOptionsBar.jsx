@@ -1,11 +1,14 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   IconButton,
-  Portal,
   Tooltip,
   Menu,
   MenuItem,
+  Checkbox,
+  ListItemText,
+  Portal,
+  Button,
 } from "@mui/material";
 import NotificationAddOutlinedIcon from "@mui/icons-material/NotificationAddOutlined";
 import GroupAddOutlinedIcon from "@mui/icons-material/GroupAddOutlined";
@@ -14,12 +17,15 @@ import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
 import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 import MoreVertOutlinedIcon from "@mui/icons-material/MoreVertOutlined";
 import UnarchiveRoundedIcon from "@mui/icons-material/UnarchiveRounded";
-import { useDispatch } from "react-redux";
+import LabelOutlinedIcon from "@mui/icons-material/LabelOutlined"; // Icon for labels
+import { useDispatch, useSelector } from "react-redux";
 import {
   setSelectedColor,
   setSelectedIcon,
   toggleTrash,
   toggleArchive,
+  removeNoteLabel,
+  addNoteLabel,
 } from "../pages/notes/NotesSlice";
 import BackgroundOptions from "./BackgroundOptions";
 import ReminderInput from "./ReminderInput"; // Assuming ReminderInput is in the same folder
@@ -31,9 +37,12 @@ const BottomIconOptionsBar = (props) => {
   const [selectedIcon, setSelectedIconState] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [moreOptionsAnchorEl, setMoreOptionsAnchorEl] = useState(null); // For More Options Menu
-  const portalRef = useRef(null);
+  const [labelsAnchorEl, setLabelsAnchorEl] = useState(null); // Anchor for label menu
+  const [selectedLabels, setSelectedLabels] = useState([...props.pLabels]); // State for selected labels
 
+  const labels = useSelector((state) => state.notes.labels); // Selector for labels
   const dispatch = useDispatch();
+  const portalRef = useRef(null);
 
   const handleColorLensClick = (event) => {
     setOpen(true);
@@ -73,13 +82,58 @@ const BottomIconOptionsBar = (props) => {
   };
 
   const handleDeleteNote = () => {
-    console.log(`Delete Note with id: ${props.noteId}`);
     dispatch(toggleTrash(props.noteId));
     handleMoreOptionsClose();
   };
 
   const handleToggleArchiveNote = () => {
     dispatch(toggleArchive(props.noteId));
+  };
+
+  const handleLabelsClick = (event) => {
+    setLabelsAnchorEl(event.currentTarget); // Open menu
+  };
+
+  const handleLabelsClose = () => {
+    setLabelsAnchorEl(null); // Close menu
+  };
+
+  const handleLabelToggle = (labelId) => {
+    // Toggle label selection without closing the menu
+    const currentIndex = selectedLabels.indexOf(labelId);
+    const newSelectedLabels = [...selectedLabels];
+
+    if (currentIndex === -1) {
+      newSelectedLabels.push(labelId); // Add label if not selected
+    } else {
+      newSelectedLabels.splice(currentIndex, 1); // Remove label if selected
+    }
+
+    setSelectedLabels(newSelectedLabels); // Update state without closing the menu
+  };
+
+  const handleDoneClick = () => {
+    // Labels that are in props.pLabels but not in newSelectedLabels (i.e., deleted labels)
+    const deletedLabels = props.pLabels.filter(
+      (label) => !selectedLabels.includes(label)
+    );
+
+    // Labels that are in newSelectedLabels but not in props.pLabels (i.e., inserted labels)
+    const insertedLabels = selectedLabels.filter(
+      (label) => !props.pLabels.includes(label)
+    );
+
+    // Dispatch actions if there are any deleted or inserted labels
+    if (deletedLabels.length) {
+      dispatch(removeNoteLabel({ note_id: props.noteId, label_ids: deletedLabels }));
+    }
+
+    if (insertedLabels.length) {
+      dispatch(addNoteLabel({ note_id: props.noteId, label_ids: insertedLabels }));
+    }
+
+    // Close the label menu when "Done" is clicked
+    handleLabelsClose();
   };
 
   useEffect(() => {
@@ -102,7 +156,7 @@ const BottomIconOptionsBar = (props) => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [open, reminderOpen, anchorEl]);
+  }, [dispatch, open, reminderOpen, anchorEl]);
 
   return (
     <Box
@@ -113,6 +167,7 @@ const BottomIconOptionsBar = (props) => {
         marginLeft: "-10px",
       }}
     >
+      {/* Tooltips and Icon Buttons for different actions */}
       <Tooltip title="Add Reminder">
         <IconButton onClick={handleReminderClick}>
           <NotificationAddOutlinedIcon />
@@ -147,6 +202,29 @@ const BottomIconOptionsBar = (props) => {
           </IconButton>
         </Tooltip>
       )}
+
+      <Tooltip title="Select Labels">
+        <IconButton onClick={handleLabelsClick}>
+          <LabelOutlinedIcon />
+        </IconButton>
+      </Tooltip>
+
+      {/* Label Menu */}
+      <Menu
+        anchorEl={labelsAnchorEl}
+        open={Boolean(labelsAnchorEl)}
+        onClose={handleLabelsClose}
+      >
+        {labels.map((label) => (
+          <MenuItem key={label.id} onClick={() => handleLabelToggle(label.id)}>
+            <Checkbox checked={selectedLabels.includes(label.id)} />
+            <ListItemText primary={label.name} />
+          </MenuItem>
+        ))}
+        <MenuItem>
+          <Button onClick={handleDoneClick}>Done</Button>
+        </MenuItem>
+      </Menu>
 
       <Tooltip title="More Options">
         <IconButton onClick={handleMoreOptionsClick}>

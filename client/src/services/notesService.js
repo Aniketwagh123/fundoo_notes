@@ -103,6 +103,23 @@ const getAllLabels = async () => {
   return response;
 };
 
+// Add labels
+const addNoteLabel = async (note_id, label_ids) => {
+  const response = await axiosInstance.post("notes/add_labels/", {
+    note_id: note_id,
+    label_ids: label_ids,
+  });
+  return response;
+};
+
+// Remove labels
+const removeNoteLabel = async (note_id, label_ids) => {
+  const response = await axiosInstance.post("notes/remove_labels/", {
+    note_id: note_id,
+    label_ids: label_ids,
+  });
+  return response;
+};
 
 const noteService = {
   getNotes,
@@ -118,6 +135,8 @@ const noteService = {
   addLabel,
   removeLabel,
   getAllLabels,
+  addNoteLabel,
+  removeNoteLabel,
 };
 
 export default noteService;

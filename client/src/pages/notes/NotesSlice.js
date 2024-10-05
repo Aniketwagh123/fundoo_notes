@@ -60,7 +60,7 @@ export const deleteNote = createAsyncThunk("notes/deleteNote", async (id) => {
 
 // Async thunk to fetch all labels
 export const fetchAllLabels = createAsyncThunk(
-  "notes/fetchAllLabels",
+  "label/fetchAllLabels",
   async () => {
     const response = await noteService.getAllLabels(); // Create this function in your service
     return response.data; // Ensure this matches your API response structure
@@ -69,7 +69,7 @@ export const fetchAllLabels = createAsyncThunk(
 
 // Async thunk to add labels
 export const addLabel = createAsyncThunk(
-  "notes/addLabel",
+  "label/addLabel",
   async (labelData) => {
     const response = await noteService.addLabel(labelData);
     return response.data; // Ensure this matches your API response structure
@@ -77,10 +77,27 @@ export const addLabel = createAsyncThunk(
 );
 
 // Async thunk to remove labels
-export const removeLabel = createAsyncThunk("notes/removeLabel", async (id) => {
+export const removeLabel = createAsyncThunk("label/removeLabel", async (id) => {
   const response = await noteService.removeLabel(id);
   return id; // Ensure this matches your API response structure
 });
+
+// Async thunk to add note labels
+export const addNoteLabel = createAsyncThunk(
+  "notes/addNoteLabel",
+  async ({note_id, label_ids}) => {
+    await noteService.addNoteLabel(note_id, label_ids);
+    return {note_id, label_ids}; // Ensure this matches your API response structure
+  }
+);
+// Async thunk to remove labels
+export const removeNoteLabel = createAsyncThunk(
+  "notes/removeNoteLabel",
+  async ({note_id, label_ids}) => {
+    await noteService.removeNoteLabel(note_id, label_ids);
+    return {note_id, label_ids}; // Ensure this matches your API response structure
+  }
+);
 
 const notesSlice = createSlice({
   name: "notes",
@@ -110,7 +127,7 @@ const notesSlice = createSlice({
       })
       .addCase(fetchAllNotes.fulfilled, (state, action) => {
         console.log(action.payload);
-        
+
         state.notesData = action.payload; // Set the fetched notes
         state.loading = false;
       })
@@ -285,6 +302,8 @@ const notesSlice = createSlice({
       })
       .addCase(fetchAllLabels.fulfilled, (state, action) => {
         state.labels = action.payload; // Set the fetched labels
+        console.log(state.labels);
+        
         state.loading = false;
       })
       .addCase(fetchAllLabels.rejected, (state, action) => {
@@ -314,6 +333,50 @@ const notesSlice = createSlice({
         state.loading = false;
       })
       .addCase(removeLabel.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+
+      .addCase(addNoteLabel.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(addNoteLabel.fulfilled, (state, action) => {
+        const { note_id, label_ids } = action.payload;
+      
+        const note = state.notesData.find((n) => n.id === note_id);
+        if (note) {
+          const existingLabels = new Set(note.labels);
+          const newLabels = label_ids.filter(
+            (labelId) => !existingLabels.has(labelId)
+          );
+      
+          note.labels = [...note.labels, ...newLabels];
+        }
+        state.loading = false;
+      })
+      .addCase(addNoteLabel.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+
+      .addCase(removeNoteLabel.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(removeNoteLabel.fulfilled, (state, action) => {
+        const { note_id, label_ids } = action.payload;
+      
+        const note = state.notesData.find((n) => n.id === note_id);
+        if (note) {
+          note.labels = note.labels.filter(
+            (labelId) => !label_ids.includes(labelId)
+          );
+        }
+        state.loading = false;
+      })
+      
+      .addCase(removeNoteLabel.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       });
