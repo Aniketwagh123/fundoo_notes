@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getAccessToken } from "./authServices"; // Assuming you have an authService that handles tokens
 
-const API_URL = "http://localhost:8000/api/notes/"; // Update with your actual API URL
+const API_URL = "http://localhost:8000/api/"; // Update with your actual API URL
 
 // Set up axios with the token in the Authorization header
 const axiosInstance = axios.create({
@@ -14,21 +14,21 @@ const axiosInstance = axios.create({
 // Get all notes
 const getNotes = async () => {
   console.log(`???`);
-  const response = await axiosInstance.get("/");
+  const response = await axiosInstance.get("notes/");
   //   console.log(`???${JSON.stringify(response.data)}`);
   return response.data;
 };
 
 // Get archived notes
 const getArchivedNotes = async () => {
-  const response = await axiosInstance.get("archived/");
+  const response = await axiosInstance.get("notes/archived/");
   return response.data;
 };
 
 // Get trashed notes
 const getTrashedNotes = async () => {
-  const response = await axiosInstance.get("trashed/");
-//   console.log(response.data)
+  const response = await axiosInstance.get("notes/trashed/");
+  //   console.log(response.data)
   return response.data;
 };
 
@@ -36,41 +36,41 @@ const getTrashedNotes = async () => {
 const createNote = async (noteData) => {
   console.log("AAAA>>>??????");
 
-  const response = await axiosInstance.post("/", noteData);
+  const response = await axiosInstance.post("notes/", noteData);
   console.log(`??...>,<,.${JSON.stringify(response.data)}`);
   return response.data;
 };
 
 // Update a note
 const updateNote = async (id, noteData) => {
-  const response = await axiosInstance.put(`${id}/`, noteData);
+  const response = await axiosInstance.put(`notes/${id}/`, noteData);
   return response.data;
 };
 
 // Toggle archive status
 const toggleArchive = async (id) => {
-  const response = await axiosInstance.patch(`${id}/is_archive/`);
+  const response = await axiosInstance.patch(`notes/${id}/is_archive/`);
   return response.data;
 };
 
 // Toggle trash status
 const toggleTrash = async (id) => {
-  const response = await axiosInstance.patch(`${id}/is_trash/`);
+  const response = await axiosInstance.patch(`notes/${id}/is_trash/`);
   return response.data;
 };
 
 // Delete a note
 const deleteNote = async (id) => {
-  const response = await axiosInstance.delete(`${id}/`);
+  const response = await axiosInstance.delete(`notes/${id}/`);
   console.log(`aaqq ${JSON.stringify(response)}`);
-  
+
   return response.data;
 };
 
 // Add collaborators
 const addCollaborators = async (collaboratorData) => {
   const response = await axiosInstance.post(
-    "add_collaborators/",
+    "notes/add_collaborators/",
     collaboratorData
   );
   return response.data;
@@ -79,22 +79,28 @@ const addCollaborators = async (collaboratorData) => {
 // Remove collaborators
 const removeCollaborators = async (collaboratorData) => {
   const response = await axiosInstance.post(
-    "remove_collaborators/",
+    "notes/remove_collaborators/",
     collaboratorData
   );
   return response.data;
 };
 
 // Add labels
-const addLabels = async (labelData) => {
-  const response = await axiosInstance.post("add_labels/", labelData);
-  return response.data;
+const addLabel = async (labelData) => {
+  const response = await axiosInstance.post("labels/", labelData);
+  return response;
 };
 
 // Remove labels
-const removeLabels = async (labelData) => {
-  const response = await axiosInstance.post("remove_labels/", labelData);
-  return response.data;
+const removeLabel = async (id) => {
+  const response = await axiosInstance.delete(`labels/${id}/`);
+  return response;
+};
+
+// get all labels
+const getAllLabels = async () => {
+  const response = await axiosInstance.get("labels/");
+  return response;
 };
 
 
@@ -109,8 +115,9 @@ const noteService = {
   deleteNote,
   addCollaborators,
   removeCollaborators,
-  addLabels,
-  removeLabels,
+  addLabel,
+  removeLabel,
+  getAllLabels,
 };
 
 export default noteService;

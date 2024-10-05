@@ -58,12 +58,37 @@ export const deleteNote = createAsyncThunk("notes/deleteNote", async (id) => {
   return { id }; // Ensure this matches your API response structure
 });
 
+// Async thunk to fetch all labels
+export const fetchAllLabels = createAsyncThunk(
+  "notes/fetchAllLabels",
+  async () => {
+    const response = await noteService.getAllLabels(); // Create this function in your service
+    return response.data; // Ensure this matches your API response structure
+  }
+);
+
+// Async thunk to add labels
+export const addLabel = createAsyncThunk(
+  "notes/addLabel",
+  async (labelData) => {
+    const response = await noteService.addLabel(labelData);
+    return response.data; // Ensure this matches your API response structure
+  }
+);
+
+// Async thunk to remove labels
+export const removeLabel = createAsyncThunk("notes/removeLabel", async (id) => {
+  const response = await noteService.removeLabel(id);
+  return id; // Ensure this matches your API response structure
+});
+
 const notesSlice = createSlice({
   name: "notes",
   initialState: {
     notesData: [],
     trashedNotes: [],
     archivedNotes: [],
+    labels: [],
     selectedColor: null,
     selectedIcon: null,
     loading: false,
@@ -84,6 +109,8 @@ const notesSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchAllNotes.fulfilled, (state, action) => {
+        console.log(action.payload);
+        
         state.notesData = action.payload; // Set the fetched notes
         state.loading = false;
       })
@@ -124,7 +151,6 @@ const notesSlice = createSlice({
       })
       .addCase(fetchArchivedNotes.fulfilled, (state, action) => {
         state.archivedNotes = action.payload;
-
         state.loading = false;
       })
       .addCase(fetchArchivedNotes.rejected, (state, action) => {
@@ -250,6 +276,44 @@ const notesSlice = createSlice({
       })
 
       .addCase(deleteNote.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(fetchAllLabels.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllLabels.fulfilled, (state, action) => {
+        state.labels = action.payload; // Set the fetched labels
+        state.loading = false;
+      })
+      .addCase(fetchAllLabels.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(addLabel.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(addLabel.fulfilled, (state, action) => {
+        state.labels.push(action.payload); // Add the new label to the labels array
+        state.loading = false;
+      })
+      .addCase(addLabel.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(removeLabel.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(removeLabel.fulfilled, (state, action) => {
+        state.labels = state.labels.filter(
+          (label) => label.id !== action.payload
+        ); // Remove the label from the array
+        state.loading = false;
+      })
+      .addCase(removeLabel.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       });
