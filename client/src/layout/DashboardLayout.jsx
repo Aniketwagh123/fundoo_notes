@@ -22,7 +22,7 @@ const DashboardLayout = () => {
         setisDrowerOpen={setisDrowerOpen}
         isDrowerOpen={isDrowerOpen}
       />
-      <Box sx={{ display: "flex", paddingInline: 3 }} marginTop={10}>
+      <Box sx={{ display: "flex"}} marginTop={10}>
         <MiniDrawer isDrowerOpen={isDrowerOpen} />
         <Box component="main" sx={{ flexGrow: 1, p: 0 }}>
           <Outlet />

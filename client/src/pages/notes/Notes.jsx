@@ -89,7 +89,7 @@ const Notes = () => {
       sx={{
         width: "100%",
         paddingBlock: "30px",
-        paddingInline: "10%",
+        paddingInline: "1%",
         display: "flex",
       }}
     >
@@ -142,7 +142,7 @@ const Notes = () => {
               width: "100%",
             }}
           >
-            <BottomIconOptionsBar noteId={selectedNote?.id} />
+            <BottomIconOptionsBar noteId={selectedNote?.id} pLabels={[]}/>
             <Button onClick={handleSave} color="primary">
               Save
             </Button>

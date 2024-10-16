@@ -152,7 +152,7 @@ const ExpandableNote = () => {
               justifyContent: "space-between",
             }}
           >
-            <BottomIconOptionsBar />
+            <BottomIconOptionsBar pLabels={[]}/>
 
             <Button
               color="inhitit"

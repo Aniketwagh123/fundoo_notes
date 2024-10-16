@@ -25,7 +25,7 @@ const ReminderNotes = () => {
       sx={{
         width: "100%",
         paddingBlock: "30px",
-        paddingInline: "10%",
+        paddingInline: "1%",
         display: "flex",
       }}
     >

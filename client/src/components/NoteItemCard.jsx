@@ -23,6 +23,7 @@ const NoteItem = ({ item, noteclick }) => {
         marginBottom: 2,
         maxWidth: "300px",
         background: `url(${item.image})`,
+        minWidth:"275px",
         backgroundRepeat: "no-repeat",
         backgroundBlendMode: "overlay",
         backgroundSize: "cover",
@@ -97,9 +98,9 @@ const NoteItem = ({ item, noteclick }) => {
         onClick={(e) => e.stopPropagation()} // Prevent click propagation on the BottomBar
       >
         {location.pathname.includes("trash") ? (
-          <TrashBottomIconOptionsBar noteId={item.id} />
+          <TrashBottomIconOptionsBar noteId={item.id} pLabels={item.labels}/>
         ) : location.pathname.includes("archive") ? (
-          <BottomIconOptionsBar noteId={item.id} archive={true} />
+          <BottomIconOptionsBar noteId={item.id} archive={true} pLabels={item.labels }/>
         ) : (
           <BottomIconOptionsBar noteId={item.id} pLabels={item.labels} />
         )}
